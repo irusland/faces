@@ -1,0 +1,4 @@
+convert newtest.HEIC -define heic:exclude-chunks=date -affine 0.5,0,0.5,0,0,0 -page +200+200 -colorspace sRGB -flatten -set filename:base "%[basename]"
+"%[filename:base]_out.HEIC"
+
+convert IMG_0588.HEIC -distort SRT '0,0 0.5 0 100,100' -distort SRT '45' -colorspace sRGB ext.HEIC
