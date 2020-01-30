@@ -2,3 +2,13 @@ convert newtest.HEIC -define heic:exclude-chunks=date -affine 0.5,0,0.5,0,0,0 -p
 "%[filename:base]_out.HEIC"
 
 convert IMG_0588.HEIC -distort SRT '0,0 0.5 0 100,100' -distort SRT '45' -colorspace sRGB ext.HEIC
+
+exiftool -q -DateTimeOriginal -p '$FileName - $DateTimeOriginal' *
+exiftool -q -DateTimeOriginal -p '$FileName|$DateTimeOriginal' * | sort -t '|' -k 2
+exiftool -q -DateTimeOriginal -p '$FileName|$DateTimeOriginal' * | sort -t '|' -k 2 | cut -d'|' -f1
+
+TO GIF
+convert -resize 618x463 -delay 10 -loop 0 `exiftool -q -DateTimeOriginal -p '$FileName|$DateTimeOriginal' * | sort -t '|' -k 2 | cut -d'|' -f1` myimage.gif
+
+ORIENT
+magick "SRC" -auto-orient "RES"

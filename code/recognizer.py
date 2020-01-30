@@ -1,26 +1,63 @@
-import cv2
-import numpy as np
+import statistics
+import pickle
 import subprocess
+import time
+
+import cv2
 import os
 
 from definitions import ROOT_DIR, CODE_DIR, PHOTOS_SRC_TEST_DIR, \
-    PHOTOS_RES_TEST_DIR
+    PHOTOS_RES_TEST_DIR, CACHE, PHOTOS_RES_DIR
 
 
-def get_shift(a, b):
-    ax, ay = a
-    bx, by = b
+class Face:
+    def __init__(self, path, eye1, eye2, width, height):
+        self.path = path
+        self.width, self.height = width, height
+        self.eye1, self.eye2 = eye1, eye2
+        self.eye_distance = distance(eye1, eye2)
+        lx, ly = eye1
+        rx, ry = eye2
+        self.middle_point = ((rx + lx) // 2, (ry + ly) // 2)
+
+
+def get_shift(p1, p2):
+    ax, ay = p1
+    bx, by = p2
     dx = bx - ax
     dy = by - ay
     return dx, dy
 
 
-def distance(a, b):
-    dx, dy = get_shift(a, b)
+def distance(p1, p2):
+    dx, dy = get_shift(p1, p2)
     return (dx ** 2 + dy ** 2) ** 0.5
 
 
-def find_faces(grey, face_cascade_path, count):
+def filter_faces(grey, faces):
+    sw, sh = grey.shape
+    center_x = sw // 2
+    center_y = sh // 2
+
+    closest_dist = -1
+    closest_face = None
+
+    for face in faces:
+        x, y, w, h = face
+        grey = cv2.rectangle(grey, (x, y), (x + w, y + h), (255, 0, 0), 5)
+        grey = cv2.resize(grey, (800, 400))
+
+        x, y = get_part_center(*face)
+        dist = distance((x, y), (center_x, center_y))
+        if (closest_dist == -1 or dist <
+                closest_dist
+                or closest_face is None):
+            closest_dist = dist
+            closest_face = face
+    return closest_face
+
+
+def find_1_face(grey, face_cascade_path, count):
     face_cascade = cv2.CascadeClassifier(face_cascade_path)
     faces = face_cascade.detectMultiScale(
         grey,
@@ -28,9 +65,9 @@ def find_faces(grey, face_cascade_path, count):
         minNeighbors=5,
         minSize=(30, 30)
     )
-
-    if len(faces) != count:
-        raise Exception(f'More then {count} faces found')
+    face = filter_faces(grey, faces)
+    if face is None:
+        raise Exception(f'No face found')
     return faces[:count]
 
 
@@ -43,169 +80,178 @@ def get_part_center(x, y, w, h):
     return x + w // 2, y + h // 2
 
 
-def find_eyes(grey, eye_cascade_path):
+def filter_eyes(grey, eyes):
+    sw, sh = grey.shape
+    for eye in eyes:
+        x, y = get_part_center(*eye)
+        if y < sh // 2:
+            yield eye
+
+
+def find_2_eyes(grey, eye_cascade_path):
     eye_cascade = cv2.CascadeClassifier(eye_cascade_path)
     eyes = eye_cascade.detectMultiScale(
         grey,
-        scaleFactor=1.3,
-        minNeighbors=5,
+        scaleFactor=1.2,
+        minNeighbors=20,
         minSize=(30, 30)
     )
+    eyes = list(filter_eyes(grey, eyes))
     if len(eyes) != 2:
-        raise Exception('More than two eyes found!', eyes)
+        image = grey
+        for x, y, w, h in eyes:
+            image = cv2.rectangle(grey, (x, y), (x + w, y + h), (0, 0, 255), 5)
+        image = cv2.resize(image, (800, 400))
+        cv2.imshow(f'{len(eyes)}', image)
+        raise Exception('Not two eyes found!', eyes)
     return eyes
 
 
-def compress(image, compression):
-    height, width = image.shape
-    dsize = 1 - compression
-    return cv2.resize(image, (int(width * dsize), int(height * dsize)))
-
-
-def get_translation(root, name, ext):
+def find_eyes_centers(abs_image_path):
     face_cascade_path = os.path.join(CODE_DIR, 'face.xml')
     eye_cascade_path = os.path.join(CODE_DIR, 'eye.xml')
 
-    eyedist_precentage = 10
-
-    path = os.path.join(root, name)
-    image = cv2.imread(f'{path}.jpeg')
+    image = cv2.imread(abs_image_path)
     grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # image = compress(image, 0.5)
+    grey = cv2.medianBlur(grey, 5)
     height, width, _ = image.shape
 
-    face_eye_center_x, cy = (width // 2, height // 2)
-    image_center_point = (face_eye_center_x, cy)
+    img_center_x, img_center_y = (width // 2, height // 2)
+    image_center_point = (img_center_x, img_center_y)
 
-    # image = cv2.medianBlur(image, 5)
+    try:
+        faces = find_1_face(grey, face_cascade_path, 1)
+    except Exception:
+        cv2.imwrite(f'{abs_image_path}.fail.jpeg', grey)
+        raise
 
-    face = find_faces(grey, face_cascade_path, 1)
-    if face is None:
-        print('no faces found')
-        return
-    nose_point = list(get_center(face))[0]
+    face = faces[0]
+    face_center = get_part_center(*face)
+    fx, fy, fw, fh = face
+    face_img = grey[fy:fy + fh, fx:fx + fw]
 
-    eyes = find_eyes(grey, eye_cascade_path)
-    if eyes is None:
-        print('no eyes found')
-        return
-    eyeballs = list(get_center(eyes))
-    eyes_distance = distance(eyeballs[0], eyeballs[1])
+    try:
+        eyes = find_2_eyes(face_img, eye_cascade_path)
+    except Exception:
+        cv2.imwrite(f'{abs_image_path}.fail.jpeg', grey)
+        raise
 
+    eye_centers = []
+    # each eye processing
     for x, y, w, h in eyes:
-        # face_eye_center_x, face_eye_center_y = get_part_center(x, y, w, h)
-        eye = image[y:y + h, x:x + w]
-
-        height, width = eye.shape[:2]
-        eye = eye[25:height, 0:width]
-
-        img = eye
-        gimg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        _, gimg = cv2.threshold(gimg, 88, 255, cv2.THRESH_BINARY)
-        gimg = cv2.erode(gimg, None, iterations=4)
-        gimg = cv2.dilate(gimg, None, iterations=16)
-        gimg = cv2.medianBlur(gimg, 5)
-
-        detector_params = cv2.SimpleBlobDetector_Params()
-        detector_params.filterByArea = True
-        detector_params.maxArea = 1500
-        detector = cv2.SimpleBlobDetector_create(detector_params)
-        keypoints = detector.detect(gimg)
-        print(keypoints)
-        cv2.imshow(f'parsed {keypoints}', gimg)
-        cimg = img
-        cv2.drawKeypoints(cimg, keypoints, cimg, (0, 255, 0),
-                          cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        cv2.imshow(f'img {keypoints}', img)
-        cv2.imshow(f'final {keypoints}', cimg)
-
-        cimg = image
-        for kp in keypoints:
-            kp: cv2.KeyPoint = kp
-            eye_center_x, eye_center_y = kp.pt
-            eye_center_x = int(eye_center_x)
-            eye_center_y = int(eye_center_y)
-            r = int(kp.size)
-
-            center_on_face = (x + eye_center_x,
-                              25 + y + eye_center_y)
-
-            cv2.circle(cimg, center_on_face, r, (0, 255, 0), 2)
-            cv2.circle(cimg, center_on_face, 2, (0, 0, 255), 3)
-
-            center_on_eye = (eye_center_x, eye_center_y)
-
-            cv2.circle(eye, center_on_eye, r, (0, 255, 0), 2)
-            cv2.circle(eye, center_on_eye, 2, (0, 0, 255), 3)
-
-        # cv2.imshow(f'detected circles {(eye_center_x, eye_center_y)}', cimg)
-        cv2.imshow(f'eye {(eye_center_x, eye_center_y)}', eye)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-
-    dx, dy = get_shift(nose_point, image_center_point)
-    scale = (width * eyedist_precentage) / (100 * eyes_distance)
-
-    # m = np.float32([[1, 0, dx], [0, 1, dy]])
-    # image = cv2.warpAffine(image, m, (width, height))
-    #
-    # m = cv2.getRotationMatrix2D((width / 2, height / 2), 0, scale)
-    # image = cv2.warpAffine(image, m, (width, height))
-
-    cv2.rectangle(image, eyes[0], (255, 0, 0), 5)
-    cv2.rectangle(image, eyes[1], (255, 0, 0), 5)
-    cv2.rectangle(image, face, (255, 0, 0), 5)
-
-    cv2.imshow('centered', image)
-    cv2.waitKey(0)
-
-    return face_eye_center_x, cy, dx, dy, scale
-    # subprocess.call(f'convert {image_dir}/{image_name}.HEIC '
-    #                 f'-gravity center '
-    #                 f'-page {width * scale}x{height * scale}+{dx}+{dy} '
-    #                 f'-background none '
-    #                 # f'-flatten '
-    #                 f'-gravity center '
-    #                 # f'-page {width * scale}x{height * scale}+0+0 '
-    #
-    #                 # f'+repage '
-    #                 f'{image_dir}/{image_name}_edited.HEIC',
-    #                 shell=True)
-
-    # return image
+        eye_img = face_img[y:y + h, x:x + w]
+        eye_centers.append((fx + (x + w // 2), fy + (y + h // 2)))
+    return eye_centers
 
 
 def main():
-    redo = False
+    REDO = False
+    SRC_DIR = '/Users/irusland/Downloads/iCloudPhotos'
+    RES_DIR = PHOTOS_RES_DIR
 
-    images_paths = []
-    dirlist = [x for x in os.walk(PHOTOS_SRC_TEST_DIR)]
+    COUNTER = 0
+
+    faces = {}
+    try:
+        with open(CACHE, 'rb') as f:
+            faces = pickle.load(f)
+    except:
+        print(f'No cache found')
+    else:
+        print(f'{len(faces)} processed images found')
+
+    dirlist = [x for x in os.walk(SRC_DIR)]
     for root, dirs, files in dirlist:
-        for file in files:
-            if file.endswith('.HEIC') or file.endswith('.JPG'):
-                name, ext = file.split('.')
-                if f'{name}_edited.{ext}' in files and not redo:
-                    continue
-                src_path = os.path.join(root, f'{name}.{ext}')
-                images_paths.append((root, name, ext, src_path))
-                print('processing ', src_path)
+        for full_file_name in files:
+            COUNTER += 1
+            if (not full_file_name.endswith('.HEIC') and
+                    not full_file_name.endswith('.JPG') and
+                    not full_file_name.endswith('.jpg')):
+                continue
+            file_name, file_ext = full_file_name.split('.')
+            abs_file_path = os.path.join(root, f'{file_name}.{file_ext}')
 
-                # subprocess.call(f'mogrify '
-                #                 f'-format jpeg '
-                #                 f'{src_path}',
-                #                 shell=True)
+            if (os.path.exists(
+                    os.path.join(PHOTOS_RES_TEST_DIR, full_file_name)) or
+                    abs_file_path in faces) and not REDO:
+                continue
 
-                cx, cy, dx, dy, scale = get_translation(root, name, ext)
-                print('translation ', dx, dy, scale)
+            abs_converted_path = os.path.join(root, f'{file_name}.jpeg')
 
-                res_path = os.path.join(PHOTOS_RES_TEST_DIR, f'{name}.{ext}')
-                # subprocess.call(f'convert {src_path} '
-                #                 f'-distort SRT "0,0 1 0 {dx},{dy}" '
-                #                 f'-distort SRT "{scale} 0" '
-                #                 f'-distort SRT "0" '
-                #                 f'-colorspace sRGB '
-                #                 f'{res_path}', shell=True)
-                print('saved ', res_path)
+            print(f'step {COUNTER}/{len(files)}'
+                  f' processing ', abs_file_path)
+
+            subprocess.call(f'mogrify '
+                            f'-format jpeg '
+                            f'{abs_file_path}',
+                            shell=True)
+
+            try:
+                eye_1_center, eye_2_center = \
+                    find_eyes_centers(abs_converted_path)
+                image = cv2.imread(abs_converted_path)
+                height, width, _ = image.shape
+
+                face = Face(abs_file_path, eye_1_center, eye_2_center,
+                            width, height)
+                faces[abs_file_path] = face
+
+                with open(CACHE, 'wb') as f:
+                    pickle.dump(faces, f)
+
+            except Exception as e:
+                print(e.args)
+                continue
+
+            finally:
+                os.remove(abs_converted_path)
+
+    mx, my = 0, 0
+    md = 0
+    for face in faces.values():
+        x, y = face.middle_point
+        mx += x / face.width
+        my += y / face.height
+
+        md += face.eye_distance / face.width
+
+    average_middle_ratio_point = (mx / len(faces), my / len(faces))
+    average_dist_ratio = md / len(faces)
+
+    print('average middle point ratio ', average_middle_ratio_point)
+    print('average eye distance ', average_dist_ratio * 100)
+
+    c = 0
+    for face in faces.values():
+        c += 1
+        path, file_name = os.path.split(face.path)
+        abs_res_path = os.path.join(RES_DIR, file_name)
+
+        ax, ay = face.middle_point
+        bx, by = average_middle_ratio_point
+        bx *= face.width
+        by *= face.height
+        dx = int(bx - ax)
+        dy = int(by - ay)
+
+        scale = (face.width * average_dist_ratio) / face.eye_distance
+
+        if not face.path.endswith('.HEIC'):
+            subprocess.call(f'magick "{face.path}" -auto-orient '
+                            f'"{face.path}"',
+                            shell=True)
+        subprocess.call(f'convert {face.path} '
+                        f'-distort SRT "0,0 1 0 {dx},{dy}" '
+                        f'-distort SRT "{scale} 0" '
+                        f'-distort SRT "0" '
+                        f'-colorspace sRGB '
+                        f'{abs_res_path}', shell=True)
+
+        print(f'{c}/{len(faces.values())} saved {abs_res_path} with '
+              f'{(dx, dy)} {scale}')
+        time.sleep(5)
+
+    cv2.waitKey()
 
 
 if __name__ == '__main__':
