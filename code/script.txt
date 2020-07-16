@@ -5,10 +5,28 @@ convert IMG_0588.HEIC -distort SRT '0,0 0.5 0 100,100' -distort SRT '45' -colors
 
 exiftool -q -DateTimeOriginal -p '$FileName - $DateTimeOriginal' *
 exiftool -q -DateTimeOriginal -p '$FileName|$DateTimeOriginal' * | sort -t '|' -k 2
-exiftool -q -DateTimeOriginal -p '$FileName|$DateTimeOriginal' * | sort -t '|' -k 2 | cut -d'|' -f1
+exiftool -q -DateTimeOriginal -m -p '$Directory/$FileName|$DateTimeOriginal' * | sort -t '|' -k 2 | cut -d'|' -f1
+exiftool -q -DateTimeOriginal -m -p '$Directory/$FileName|$DateTimeOriginal' -r $PWD  * | sort -t '|' -k 2 | cut -d'|' -f1
+
+| grep -i jpg$
 
 TO GIF
 convert -resize 618x463 -delay 10 -loop 0 `exiftool -q -DateTimeOriginal -p '$FileName|$DateTimeOriginal' * | sort -t '|' -k 2 | cut -d'|' -f1` myimage.gif
 
 ORIENT
 magick "SRC" -auto-orient "RES"
+
+ | cat | ffmpeg -i pipe: -r 10/1 img.mp4
+ | cat | ffmpeg -f image2pipe -r 10/1 -c:v mjpeg -i - -c:v copy -f matroska - | ffplay -
+ ls | grep -i jpg$ | xargs cat | ffmpeg -f image2pipe -i - -r 10/1 img.mp4
+ ls | grep -i jpg$ | xargs cat | ffmpeg -f image2pipe -r 10/1 -c:v mjpeg -i - -c:v copy -f matroska - | ffplay -
+exiftool -q -DateTimeOriginal -m -p '$Directory/$FileName|$DateTimeOriginal'  -r $PWD  *.JPG | sort -t '|' -k 2 | cut -d'|' -f1 | mognify -format jpg |  ffmpeg -f image2pipe -r 10/1 -c:v mjpeg -i - -c:v copy -f matroska - | ffplay  -
+
+
+PLAN
+    1) recognize face landmarks and write data to EXIF UserComment
+    2) for each image sorted by date (exiftool)
+        get landamarks (exiftool)
+        determine translation (python)
+        apply translation (convert)
+        add frame to video (ffmpeg)
