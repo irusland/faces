@@ -4,7 +4,4 @@ exiftool -q -DateTimeOriginal -m -p '$Directory/$FileName|$DateTimeOriginal' \
 xargs cat
 ) \
 | \
-ffmpeg -f image2pipe -i - out.mkv
-
-
-
+ffmpeg -y -framerate 10 -f image2pipe -i - out.mkv

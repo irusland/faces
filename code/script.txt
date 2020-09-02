@@ -35,3 +35,21 @@ PLAN
     Pipe all relative filenames in directory inc. subdirectory
         find src_test -type f
 
+    From pipeline filenames to file data
+        xargs cat
+
+    Make video from pipe images data and override existing video
+        ffmpeg -y -framerate 1 -f image2pipe -i - out.mkv
+
+
+
+
+ffmpeg -y -i out.mkv \
+-loop 1 -framerate 10 -t 10 -i \
+/Users/irusland/Desktop/UrFU/python/faces/src_test/IMG_0005.jpg \
+-filter_complex "[0][1]concat=n=2:v=1:a=0" out2.mkv
+
+ffmpeg -i new1.mp4 -i new2.mp4 -i new3.mp4 -i new4.mp4 -filter_complex \
+        "[0]setdar=16/9[a];[1]setdar=16/9[b];[2]setdar=16/9[c];[3]setdar=16/9[d]; \
+         [a][b][c][d]concat=n=4:v=1:a=1" output.mp4
+
