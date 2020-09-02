@@ -63,7 +63,6 @@ def read_meta(path: str):
         return pyheif.read_heif(file)
 
 
-
 def main():
     parser = argparse.ArgumentParser(description='Set photo landmarks')
     # TODO stdin

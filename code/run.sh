@@ -1,9 +1,10 @@
 exiftool -q -DateTimeOriginal -m -p '$Directory/$FileName|$DateTimeOriginal' \
--r $PWD  * | sort -t '|' -k 2 | cut -d'|' -f | \
+ -r $DIR src_test/* | sort -t '|' -k 2 | cut -d'|' -f 1 |
 (
-cat
+xargs cat
 ) \
 | \
+ffmpeg -f image2pipe -i - out.mkv
 
 
 

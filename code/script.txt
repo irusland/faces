@@ -30,3 +30,8 @@ PLAN
         determine translation (python)
         apply translation (convert)
         add frame to video (ffmpeg)
+
+
+    Pipe all relative filenames in directory inc. subdirectory
+        find src_test -type f
+
