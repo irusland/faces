@@ -1,4 +1,5 @@
 import sys
+import time
 
 import cv2
 
@@ -10,18 +11,29 @@ def start():
     stream = sys.stdin.buffer
     # print(stream.read(10))
     # # stream.seek(0)
-    img = get_image(stream)
 
-    corrector = Corrector()
-    corrector.correct(img)
-    # cv2.imshow("asd", img)
-    # cv2.waitKey()
+    # for line in stream:
+    while True:
+        data = stream.read()
+        if not data:
+            break
+        img = get_image(data)
+        cv2.namedWindow("in", cv2.WINDOW_NORMAL)
+        cv2.imshow("in", img)
 
-    success, encoded_image = cv2.imencode('.jpg', img)
-    out = encoded_image.tostring()
-    print(out[:10])
-    sys.stdout.buffer.write(out)
-    # todo work on next step
+        corrector = Corrector()
+        corrector.correct(img)
+
+        cv2.namedWindow("out", cv2.WINDOW_NORMAL)
+        cv2.imshow("out", img)
+
+        cv2.waitKey()
+
+
+        success, encoded_image = cv2.imencode('.jpg', img)
+        out = encoded_image.tostring()
+        sys.stdout.buffer.write(out)
+
 
 
 if __name__ == '__main__':

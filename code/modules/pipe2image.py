@@ -3,8 +3,8 @@ import cv2
 import numpy
 
 
-def get_image(stream):
-    array = numpy.frombuffer(stream.read(), numpy.uint8)
+def get_image(buffer):
+    array = numpy.frombuffer(buffer, numpy.uint8)
     return cv2.imdecode(array, 1)
 
 
