@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "faces"
+version = "0.1.0"
+description = ""
+authors = ["Ruslan Sirazhetdinov <ruslansir@icloud.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+dlib = "^19.22.0"
+numpy = "^1.20.3"
+opencv-python = "^4.5.2"
+six = "^1.16.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

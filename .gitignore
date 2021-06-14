@@ -6,3 +6,5 @@
 /res_test/
 dlib-landmark-mean.png
 *.mkv
+.venv
+.idea
