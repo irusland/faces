@@ -8,3 +8,4 @@ dlib-landmark-mean.png
 *.mkv
 .venv
 .idea
+.DS_Store
