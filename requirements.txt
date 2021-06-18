@@ -1,4 +1,0 @@
-dlib==19.20.0
-numpy==1.19.0
-opencv-python==4.2.0.34
-six==1.15.0

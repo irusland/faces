@@ -1,17 +1,21 @@
+import os
 import threading
 import time
 
-import cv2
+from cv2 import cv2
 import numpy
 from numpy import dot
 import dlib
+
+from definitions import ROOT_DIR
 
 cap = cv2.VideoCapture(0)
 cap.set(3, 640)
 cap.set(4, 480)
 
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+model_path = os.path.join(ROOT_DIR, "shape_predictor_68_face_landmarks.dat")
+predictor = dlib.shape_predictor(model_path)
 
 
 class TooManyFaces(Exception):
@@ -141,11 +145,11 @@ def main():
 
         masked_image = numpy.zeros_like(image)
         masked_image[mask] = image[mask]
-        color = ((numpy.sum(masked_image, axis=(0, 1)) /
-                  numpy.sum(mask, axis=(0, 1))))
-        if ref_color is None:
-            ref_color = color
-        image = image * ref_color / color
+        # color = ((numpy.sum(masked_image, axis=(0, 1)) /
+        #           numpy.sum(mask, axis=(0, 1))))
+        # if ref_color is None:
+        #     ref_color = color
+        # image = image * ref_color / color
         cv2.imshow("masked", masked_image)
 
         for (x, y) in landmarks:

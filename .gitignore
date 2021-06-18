@@ -9,3 +9,4 @@ dlib-landmark-mean.png
 .venv
 .idea
 .DS_Store
+__pycache__
