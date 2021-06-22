@@ -1,4 +1,5 @@
 import sys
+
 import cv2
 import numpy
 
@@ -8,6 +9,6 @@ def get_image(buffer):
     return cv2.imdecode(array, 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     buffer = sys.stdin.buffer
     get_image(buffer)
