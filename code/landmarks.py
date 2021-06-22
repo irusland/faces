@@ -1,11 +1,10 @@
 import os
-import threading
 import time
 
-from cv2 import cv2
-import numpy
-from numpy import dot
 import dlib
+import numpy
+from cv2 import cv2
+from numpy import dot
 
 from definitions import ROOT_DIR
 
@@ -29,12 +28,14 @@ class NoFaces(BaseException):
 def warp_image(image, operator_matrix):
     image_shape = image.shape
     output_image = numpy.zeros(image_shape, dtype=image.dtype)
-    cv2.warpAffine(image,
-                   operator_matrix[:2],
-                   (image_shape[1], image_shape[0]),
-                   dst=output_image,
-                   borderMode=cv2.BORDER_REPLICATE,
-                   flags=cv2.WARP_INVERSE_MAP)
+    cv2.warpAffine(
+        image,
+        operator_matrix[:2],
+        (image_shape[1], image_shape[0]),
+        dst=output_image,
+        borderMode=cv2.BORDER_REPLICATE,
+        flags=cv2.WARP_INVERSE_MAP,
+    )
     return output_image
 
 
@@ -76,10 +77,14 @@ def get_translation_operator_matrix(points1, points2):
     # cosa -sina dx
     # sina cosa  dy
     # 0    0     1
-    transformation_matrix = numpy.vstack([
-        numpy.hstack((scaled_rotation_matrix, numpy.vstack(translation_matrix))),
-        numpy.array([0., 0., 1.])
-    ])
+    transformation_matrix = numpy.vstack(
+        [
+            numpy.hstack(
+                (scaled_rotation_matrix, numpy.vstack(translation_matrix))
+            ),
+            numpy.array([0.0, 0.0, 1.0]),
+        ]
+    )
 
     return transformation_matrix
 
@@ -109,7 +114,7 @@ def get_eyes_landmarks(face_landmarks, eye_ranges):
 
 def main():
     anchor_landmarks = None
-    ref_color = None
+    # ref_color = None
     while True:
         _, frame = cap.read()
         # frame = cv2.imread('dlib-landmark-mean.png')
@@ -121,8 +126,8 @@ def main():
         # Compute landmark features for the face in the image.
         try:
             landmarks = get_landmarks(image)
-            from_68 = ((36, 42), (42, 48))
-            from_5 = ((0, 2), (2, 4))
+            # from_68 = ((36, 42), (42, 48))
+            # from_5 = ((0, 2), (2, 4))
             # landmarks = get_eyes_landmarks(landmarks, from_68)
         except NoFaces:
             print("Warning: No faces in image {}")
@@ -134,10 +139,12 @@ def main():
         # If this is the first image, make it the reference.
         if anchor_landmarks is None:
             anchor_landmarks = landmarks
-            print('reference set')
+            print("reference set")
             time.sleep(2)
 
-        operator_matrix = get_translation_operator_matrix(anchor_landmarks, landmarks)
+        operator_matrix = get_translation_operator_matrix(
+            anchor_landmarks, landmarks
+        )
 
         mask = numpy.zeros(image.shape[:2], dtype=numpy.float64)
         cv2.fillConvexPoly(mask, cv2.convexHull(landmarks), 1)
@@ -172,5 +179,5 @@ def main():
             break
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

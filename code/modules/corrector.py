@@ -1,10 +1,9 @@
-import threading
 import time
 
 import cv2
+import dlib
 import numpy
 from numpy import dot
-import dlib
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
@@ -25,12 +24,14 @@ class Corrector:
     def warp_image(self, image, operator_matrix):
         image_shape = image.shape
         output_image = numpy.zeros(image_shape, dtype=image.dtype)
-        cv2.warpAffine(image,
-                       operator_matrix[:2],
-                       (image_shape[1], image_shape[0]),
-                       dst=output_image,
-                       borderMode=cv2.BORDER_REPLICATE,
-                       flags=cv2.WARP_INVERSE_MAP)
+        cv2.warpAffine(
+            image,
+            operator_matrix[:2],
+            (image_shape[1], image_shape[0]),
+            dst=output_image,
+            borderMode=cv2.BORDER_REPLICATE,
+            flags=cv2.WARP_INVERSE_MAP,
+        )
         return output_image
 
     def get_translation_operator_matrix(self, points1, points2):
@@ -71,10 +72,14 @@ class Corrector:
         # cosa -sina dx
         # sina cosa  dy
         # 0    0     1
-        transformation_matrix = numpy.vstack([
-            numpy.hstack((scaled_rotation_matrix, numpy.vstack(translation_matrix))),
-            numpy.array([0., 0., 1.])
-        ])
+        transformation_matrix = numpy.vstack(
+            [
+                numpy.hstack(
+                    (scaled_rotation_matrix, numpy.vstack(translation_matrix))
+                ),
+                numpy.array([0.0, 0.0, 1.0]),
+            ]
+        )
 
         return transformation_matrix
 
@@ -113,11 +118,12 @@ class Corrector:
         # If this is the first image, make it the reference.
         if self.anchor_landmarks is None:
             self.anchor_landmarks = landmarks
-            print('reference set')
+            print("reference set")
             time.sleep(2)
 
-        operator_matrix = self.get_translation_operator_matrix(
-            self.anchor_landmarks, landmarks)
+        # operator_matrix = self.get_translation_operator_matrix(
+        #     self.anchor_landmarks, landmarks
+        # )
 
         mask = numpy.zeros(image.shape[:2], dtype=numpy.float64)
         cv2.fillConvexPoly(mask, cv2.convexHull(landmarks), 1)
@@ -125,8 +131,9 @@ class Corrector:
 
         masked_image = numpy.zeros_like(image)
         masked_image[mask] = image[mask]
-        color = ((numpy.sum(masked_image, axis=(0, 1)) /
-                  numpy.sum(mask, axis=(0, 1))))
+        color = numpy.sum(masked_image, axis=(0, 1)) / numpy.sum(
+            mask, axis=(0, 1)
+        )
         if self.ref_color is None:
             self.ref_color = color
         image = image * self.ref_color / color
@@ -135,7 +142,7 @@ class Corrector:
         for (x, y) in landmarks:
             cv2.circle(image, (x, y), 3, (0, 0, 255), -1)
         # Translate/rotate/scale the image to fit over the reference image.
-        warped = self.warp_image(image, operator_matrix)
+        # warped = self.warp_image(image, operator_matrix)
 
         # Write the file to disk.
         # cv2.imwrite(os.path.join(OUT_PATH, fname), warped)
@@ -150,5 +157,5 @@ class Corrector:
         # key = cv2.waitKey(1)
 
 
-if __name__ == '__main__':
-    print('Start this script from starter.py')
+if __name__ == "__main__":
+    print("Start this script from starter.py")

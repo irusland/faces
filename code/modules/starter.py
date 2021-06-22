@@ -1,10 +1,8 @@
 import sys
-import time
 
 import cv2
-
-from pipe2image import get_image
 from corrector import Corrector
+from pipe2image import get_image
 
 
 def start():
@@ -29,12 +27,10 @@ def start():
 
         cv2.waitKey()
 
-
-        success, encoded_image = cv2.imencode('.jpg', img)
+        success, encoded_image = cv2.imencode(".jpg", img)
         out = encoded_image.tostring()
         sys.stdout.buffer.write(out)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     start()
