@@ -9,7 +9,8 @@ pretty:
 
 lint:
 	poetry run flake8 --exclude $(VENV) --ignore E203,W503
-# 	poetry run mypy --exclude $(VENV) .
+	export MYPYPATH=./stubs
+	poetry run mypy --exclude $(VENV) .
 
 plint: pretty lint
 

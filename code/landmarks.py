@@ -89,7 +89,7 @@ def get_translation_operator_matrix(points1, points2):
     return transformation_matrix
 
 
-def get_landmarks(image):
+def get_landmarks(image: numpy.ndarray):
     rectangles = detector(image, 1)
 
     if len(rectangles) > 1:
@@ -118,7 +118,7 @@ def main():
     while True:
         _, frame = cap.read()
         # frame = cv2.imread('dlib-landmark-mean.png')
-        image = frame
+        image: numpy.ndarray = frame
         # image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # cv2.imshow("asd", frame)
