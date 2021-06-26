@@ -47,11 +47,11 @@ jobs:
       - name: Poetry Install
         run: poetry install
 
-      - name: Upload venv Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: venv
-          path: .venv
+#      - name: Upload venv Artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: venv
+#          path: .venv
 
 
   linters:
@@ -61,11 +61,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v2
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
         with:
-          name: venv
           path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+#      - name: Download all workflow run artifacts
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: venv
+#          path: .venv
 
       - name: .venv activate
         run: source .venv/bin/activate
@@ -80,11 +87,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Download a single artifact
-        uses: actions/download-artifact@v2
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
         with:
-          name: venv
           path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+#      - name: Download a single artifact
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: venv
+#          path: .venv
 
       - name: .venv activate
         run: source .venv/bin/activate
