@@ -27,4 +27,4 @@ jobs:
     - name: Use Prime Numbers
       run: |
         pwd
-        cat prime-numbers/file.txt
+        cat .venv/file.txt
