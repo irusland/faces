@@ -6,14 +6,14 @@ import numpy
 from cv2 import cv2
 from numpy import dot
 
-from definitions import ROOT_DIR
+from definitions import MODELS_DIR
 
 cap = cv2.VideoCapture(0)
 cap.set(3, 640)
 cap.set(4, 480)
 
 detector = dlib.get_frontal_face_detector()
-model_path = os.path.join(ROOT_DIR, "shape_predictor_68_face_landmarks.dat")
+model_path = os.path.join(MODELS_DIR, "shape_predictor_68_face_landmarks.dat")
 predictor = dlib.shape_predictor(model_path)
 
 
@@ -148,7 +148,7 @@ def main():
 
         mask = numpy.zeros(image.shape[:2], dtype=numpy.float64)
         cv2.fillConvexPoly(mask, cv2.convexHull(landmarks), 1)
-        mask = mask.astype(numpy.bool)
+        mask = mask.astype(bool)
 
         masked_image = numpy.zeros_like(image)
         masked_image[mask] = image[mask]

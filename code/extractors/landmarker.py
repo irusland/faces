@@ -1,25 +1,21 @@
-import os
+from typing import Generator
 
 import dlib
 import numpy
 from dlib import shape_predictor
-from numpy.random import Generator
-
-from definitions import ROOT_DIR
 
 
 class FacialPredictor:
-    def __init__(
-        self, model_path: str = "shape_predictor_68_face_landmarks.dat"
-    ):
+    def __init__(self, model_path: str):
         """
         :param model_path: path for shape predictor
         """
         self._detector = dlib.get_frontal_face_detector()
-        model_path = os.path.join(ROOT_DIR, model_path)
         self._predictor: shape_predictor = dlib.shape_predictor(model_path)
 
-    def get_landmarks(self, image: numpy.ndarray) -> Generator[numpy.array]:
+    def get_landmarks(
+        self, image: numpy.ndarray
+    ) -> Generator[numpy.ndarray, None, None]:
         """
         Gets face landmarks
         :param image: numpy matrix of image
