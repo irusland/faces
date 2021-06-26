@@ -13,15 +13,15 @@ jobs:
       id: cache-primes
       uses: actions/cache@v2
       with:
-        path: prime-numbers
+        path: .venv
         key: ${{ runner.os }}-primes
 
     - name: Generate Prime Numbers
       if: steps.cache-primes.outputs.cache-hit != 'true'
       run: |
-        mkdir prime-numbers
-        touch prime-numbers/file.txt
-        echo 1 > prime-numbers/file.txt
+        mkdir .venv
+        touch .venv/file.txt
+        echo 1 > .venv/file.txt
 
 
     - name: Use Prime Numbers
