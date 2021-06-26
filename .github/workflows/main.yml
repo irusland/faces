@@ -1,28 +1,18 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
       - name: Install and configure Poetry
@@ -47,12 +37,6 @@ jobs:
       - name: Poetry Install
         run: poetry install
 
-#      - name: Upload venv Artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: venv
-#          path: .venv
-
 
   linters:
     needs: build
@@ -75,12 +59,6 @@ jobs:
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
-#      - name: Download all workflow run artifacts
-#        uses: actions/download-artifact@v2
-#        with:
-#          name: venv
-#          path: .venv
 
       - name: .venv activate
         run: source .venv/bin/activate
@@ -110,17 +88,15 @@ jobs:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
-#      - name: Download a single artifact
-#        uses: actions/download-artifact@v2
-#        with:
-#          name: venv
-#          path: .venv
-
       - name: .venv activate
         run: source .venv/bin/activate
 
 
-      - name: Run a multi-line script
-        run: |
-          make ctest
-          echo 11111
+      - name: Test with coverage report
+        run: make ctest
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: htmlcov
+          path: htmlcov
