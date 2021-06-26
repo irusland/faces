@@ -19,6 +19,7 @@ jobs:
     - name: Generate Prime Numbers
       if: steps.cache-primes.outputs.cache-hit != 'true'
       run: |
+        mkdir prime-numbers
         touch prime-numbers/file.txt
         echo 1 > prime-numbers/file.txt
 
