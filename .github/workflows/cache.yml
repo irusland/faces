@@ -25,4 +25,6 @@ jobs:
 
 
     - name: Use Prime Numbers
-      run: cat prime-numbers/file.txt
+      run: |
+        pwd
+        cat prime-numbers/file.txt
