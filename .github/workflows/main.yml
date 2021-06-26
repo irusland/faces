@@ -57,3 +57,28 @@ jobs:
         run: |
           make ctest
           echo 11111
+
+  linters:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: .venv activate
+        run: source $VENV
+
+      - name: Linters
+        run: make lint
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run a multi-line script
+        run: |
+          make ctest
+          echo 11111
