@@ -13,6 +13,8 @@ lint:
 
 plint: pretty lint
 
-test:
-	PYTHONPATH='.' pytest --cov-config=.coveragerc  --cov-report=html --cov=. .
+ctest:
+	PYTHONPATH='.' pytest --cov-config=.coveragerc --cov-report=html --cov=. .
+
+copen:
 	open -a Safari htmlcov/index.html

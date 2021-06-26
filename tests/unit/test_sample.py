@@ -1,6 +1,6 @@
-import pytest
-
 from code.factory.corrector import TooManyFaces
+
+import pytest
 
 
 @pytest.fixture()
