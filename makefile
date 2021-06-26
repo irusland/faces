@@ -12,3 +12,7 @@ lint:
 	mypy --exclude $(VENV) .
 
 plint: pretty lint
+
+test:
+	PYTHONPATH='.' pytest --cov-config=.coveragerc  --cov-report=html --cov=. .
+	open -a Safari htmlcov/index.html

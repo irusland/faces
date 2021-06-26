@@ -1,0 +1,8 @@
+[run]
+omit =
+	tests/*
+	.venv/*
+	*__init__.py
+
+[coverage:report]
+skip_empty = true
