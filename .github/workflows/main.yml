@@ -37,7 +37,7 @@ jobs:
         id: cached-poetry-dependencies
         uses: actions/cache@v2
         with:
-          path: .venv
+          path: ./.venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
@@ -57,3 +57,6 @@ jobs:
         run: |
           make ctest
           echo 11111
+
+venv-Linux-f1419afebd53902237fd286ce7b55873f186ceea5bd7df626c205d8742676456
+venv-Linux-f1419afebd53902237fd286ce7b55873f186ceea5bd7df626c205d8742676456
