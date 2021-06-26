@@ -3,7 +3,7 @@ name: Caching Primes
 on: push
 
 jobs:
-  build:
+  cache-check:
     runs-on: ubuntu-latest
 
     steps:
