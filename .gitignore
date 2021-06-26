@@ -11,3 +11,5 @@ dlib-landmark-mean.png
 .DS_Store
 __pycache__
 htmlcov
+
+.coverage
