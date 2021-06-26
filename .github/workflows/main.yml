@@ -52,7 +52,6 @@ jobs:
         with:
           name: venv
           path: .venv
-          retention-days: 5
 
 
   linters:
@@ -64,6 +63,9 @@ jobs:
 
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v2
+        with:
+          name: venv
+          path: .venv
 
       - name: .venv activate
         run: source .venv/bin/activate
@@ -81,7 +83,8 @@ jobs:
       - name: Download a single artifact
         uses: actions/download-artifact@v2
         with:
-          name: my-artifact
+          name: venv
+          path: .venv
 
       - name: .venv activate
         run: source .venv/bin/activate
