@@ -47,6 +47,13 @@ jobs:
       - name: Poetry Install
         run: poetry install
 
+      - name: Upload venv Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: venv
+          path: .venv
+          retention-days: 5
+
 
   linters:
     needs: build
@@ -54,6 +61,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
 
       - name: .venv activate
         run: source .venv/bin/activate
@@ -68,6 +78,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Download a single artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: my-artifact
 
       - name: .venv activate
         run: source .venv/bin/activate
