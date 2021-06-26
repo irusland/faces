@@ -4,11 +4,17 @@ init:
 	poetry install
 
 pretty:
-	isort .
-	black --line-length 79 .
+	poetry run isort .
+	poetry run black --line-length 79 .
 
 lint:
-	flake8 --exclude $(VENV) --ignore E203,W503
-	mypy --exclude $(VENV) .
+	poetry run flake8 --exclude $(VENV) --ignore E203,W503
+# 	poetry run mypy --exclude $(VENV) .
 
 plint: pretty lint
+
+ctest:
+	PYTHONPATH='.' poetry run pytest --cov-config=.coveragerc --cov-report=html --cov=. .
+
+copen:
+	open -a Safari htmlcov/index.html

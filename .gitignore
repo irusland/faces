@@ -10,3 +10,6 @@ dlib-landmark-mean.png
 .idea
 .DS_Store
 __pycache__
+htmlcov
+
+.coverage
