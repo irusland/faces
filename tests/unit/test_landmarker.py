@@ -5,11 +5,12 @@ import numpy as np
 import pytest
 
 from definitions import MODELS_DIR
+from tests.utils import path_to_file
 
 
 @pytest.fixture()
 def single_face_image() -> np.ndarray:
-    with open("face.numpy.ndarray", "rb") as f:
+    with open(path_to_file("face.numpy.ndarray"), "rb") as f:
         data = np.load(f)
         return data
 
