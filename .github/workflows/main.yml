@@ -91,7 +91,6 @@ jobs:
       - name: .venv activate
         run: source .venv/bin/activate
 
-
       - name: Test with coverage report
         run: make xml-test
 
