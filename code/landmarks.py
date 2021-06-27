@@ -6,14 +6,14 @@ import numpy
 from cv2 import cv2
 from numpy import dot
 
-from definitions import ROOT_DIR
+from definitions import MODELS_DIR
 
 cap = cv2.VideoCapture(0)
 cap.set(3, 640)
 cap.set(4, 480)
 
 detector = dlib.get_frontal_face_detector()
-model_path = os.path.join(ROOT_DIR, "shape_predictor_68_face_landmarks.dat")
+model_path = os.path.join(MODELS_DIR, "shape_predictor_68_face_landmarks.dat")
 predictor = dlib.shape_predictor(model_path)
 
 
@@ -89,7 +89,7 @@ def get_translation_operator_matrix(points1, points2):
     return transformation_matrix
 
 
-def get_landmarks(image):
+def get_landmarks(image: numpy.ndarray):
     rectangles = detector(image, 1)
 
     if len(rectangles) > 1:
@@ -118,7 +118,7 @@ def main():
     while True:
         _, frame = cap.read()
         # frame = cv2.imread('dlib-landmark-mean.png')
-        image = frame
+        image: numpy.ndarray = frame
         # image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # cv2.imshow("asd", frame)
@@ -148,7 +148,7 @@ def main():
 
         mask = numpy.zeros(image.shape[:2], dtype=numpy.float64)
         cv2.fillConvexPoly(mask, cv2.convexHull(landmarks), 1)
-        mask = mask.astype(numpy.bool)
+        mask = mask.astype(bool)
 
         masked_image = numpy.zeros_like(image)
         masked_image[mask] = image[mask]
