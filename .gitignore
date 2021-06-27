@@ -2,7 +2,6 @@
 /src/
 /src_test/
 /venv/
-/res/
 /res_test/
 dlib-landmark-mean.png
 *.mkv
@@ -13,3 +12,4 @@ __pycache__
 htmlcov
 
 .coverage
+/coverage.xml

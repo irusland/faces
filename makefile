@@ -15,8 +15,11 @@ lint:
 
 plint: pretty lint
 
-ctest:
+html-test:
 	PYTHONPATH='.' poetry run pytest --cov-config=.coveragerc --cov-report=html --cov=. .
+
+xml-test:
+	PYTHONPATH='.' poetry run pytest --cov-config=.coveragerc --cov-report=xml --cov=. .
 
 copen:
 	open -a Safari htmlcov/index.html
