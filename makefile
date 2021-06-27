@@ -15,11 +15,14 @@ lint:
 
 plint: pretty lint
 
+test:
+	PYTHONPATH='.' poetry run pytest --cov-config=.coveragerc $(PYTEST_ADDOPTS) .
+
 html-test:
-	PYTHONPATH='.' poetry run pytest --cov-config=.coveragerc --cov-report=html --cov=. .
+	make test PYTEST_ADDOPTS="--cov-report=html --cov=."
 
 xml-test:
-	PYTHONPATH='.' poetry run pytest --cov-config=.coveragerc --cov-report=xml --cov=. .
+	make PYTEST_ADDOPTS="--cov-report=xml --cov=." test
 
-copen:
+hopen:
 	open -a Safari htmlcov/index.html
