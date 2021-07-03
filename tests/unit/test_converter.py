@@ -28,5 +28,5 @@ class TestConverter:
 
     @pytest.mark.parametrize("image", ["face.pil_image"], indirect=True)
     def test_pil_np_conversion(self, converter, image: Image):
-        array = converter.pil_image_to_numpy_ndarray(image)
+        array = converter.pil_image_to_numpy_array(image)
         assert array.shape == (*image.size[::-1], 3)

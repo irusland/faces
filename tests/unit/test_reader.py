@@ -1,4 +1,4 @@
-from code.extractors.reader import Reader
+from code.extractors.reader import FileManager
 
 import pytest
 from pyheif import HeifFile
@@ -8,7 +8,7 @@ from tests.utils import path_to_file
 
 @pytest.fixture()
 def reader():
-    return Reader()
+    return FileManager()
 
 
 class TestReader:

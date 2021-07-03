@@ -14,5 +14,10 @@ class Converter:
         ).convert("RGB")
 
     @with_performance_profile
-    def pil_image_to_numpy_ndarray(self, image: Image) -> numpy.ndarray:
+    def pil_image_to_numpy_array(self, image: Image) -> numpy.ndarray:
         return numpy.array(image)
+
+    @with_performance_profile
+    def numpy_array_to_pil_image(self, image: numpy.ndarray) -> Image:
+        return img.fromarray(image)
+
