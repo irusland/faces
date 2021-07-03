@@ -20,6 +20,7 @@ mypy = "^0.902"
 pytest = "^6.2.4"
 pytest-cov = "^2.12.1"
 six = "^1.16.0"
+types-Pillow = "^8.2.6"
 
 [tool.poetry.dev-dependencies]
 

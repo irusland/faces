@@ -55,12 +55,12 @@ def rw_exif(meta, filename):
     for k, v in exif_dict.items():
         print("{:30s} {:3s}".format(str(k), str(v)))
 
-    image.save("save", format="heic", exif=exif_bytes)
+    image.save("save.heic", format="heic", exif=exif_bytes)
 
 
 def read_meta(path: str):
     with open(path, "rb") as file:
-        return pyheif.read_heif(file)
+        return pyheif.read(file)
 
 
 def main():
