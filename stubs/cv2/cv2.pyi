@@ -3,3 +3,9 @@ class VideoCapture:
         pass
     def set(self, prop_id: int, value: int) -> None:
         pass
+
+def imshow(name: str, image) -> None:
+    pass
+
+def waitKey(timeout: int) -> None:
+    pass

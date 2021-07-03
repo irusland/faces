@@ -7,6 +7,5 @@ from PIL.Image import Image
 class Presenter:
     @with_performance_profile
     def display(self, image: Image) -> None:
-        return
         cv2.imshow("image", image)
         cv2.waitKey(0)
