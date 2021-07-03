@@ -13,6 +13,9 @@ class VideoCapture:
 def imshow(name: str, image) -> None:
     pass
 
+def imwrite(filename, image) -> None:
+    pass
+
 def waitKey(delay: Optional[int] = None) -> int:
     pass
 

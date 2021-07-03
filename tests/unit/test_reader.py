@@ -1,4 +1,4 @@
-from code.extractors.reader import FileManager
+from code.extractors.filemanager import FileManager
 
 import pytest
 from pyheif import HeifFile
