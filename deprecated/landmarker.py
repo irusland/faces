@@ -2,11 +2,11 @@ import argparse
 import io
 import os
 
-import cv2
 import exifread
 import numpy
 import piexif
 import pyheif
+from cv2 import cv2
 from PIL import Image
 
 

@@ -15,6 +15,4 @@ class Converter:
 
     @with_performance_profile
     def pil_image_to_numpy_ndarray(self, image: Image) -> numpy.ndarray:
-        return numpy.array(image.getdata()).reshape(
-            image.size[0], image.size[1], 3
-        )
+        return numpy.array(image)

@@ -1,6 +1,4 @@
-from typing import Generic, TypeVar
-
-from numpy.random import Generator
+from typing import Generic, Iterator, TypeVar
 
 class Dot:
     x: float
@@ -8,7 +6,7 @@ class Dot:
 
 class shape_predictor:
     def __init__(self, model_path: str) -> None: ...
-    def parts(self) -> Generator[Dot]: ...
+    def parts(self) -> Iterator[Dot]: ...
     def __call__(self, *args, **kwargs): ...
 
 class default_fhog_feature_extractor: ...

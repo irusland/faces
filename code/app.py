@@ -35,8 +35,9 @@ def main():
     for face_landmarks in predictor.get_landmarks(np_image):
         painter.draw_points(pil_image, face_landmarks)
     logger.info("processed %s", image_path)
+
     pil_image.show()
-    # presenter.display(np_image)
+    presenter.display(np_image)
 
 
 if __name__ == "__main__":
