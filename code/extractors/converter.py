@@ -20,4 +20,3 @@ class Converter:
     @with_performance_profile
     def numpy_array_to_pil_image(self, image: numpy.ndarray) -> Image:
         return img.fromarray(image)
-

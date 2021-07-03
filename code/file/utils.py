@@ -1,8 +1,8 @@
 import hashlib
 import logging
 import sys
-
 from code.utils import with_performance_profile
+
 FORMAT = "[%(filename)15s|%(funcName)15s:%(lineno)4s] %(message)s"
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__file__)
@@ -17,5 +17,5 @@ def get_file_hash(path: str) -> str:
     return hash_md5.hexdigest()
 
 
-if __name__ == '__main__':
-    print(get_file_hash('/Users/irusland/Desktop/123123123.PNG'))
+if __name__ == "__main__":
+    print(get_file_hash("/Users/irusland/Desktop/123123123.PNG"))

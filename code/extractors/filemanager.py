@@ -1,9 +1,8 @@
-import numpy
-from cv2 import cv2
-
 from code.utils import with_performance_profile
 
+import numpy
 import pyheif
+from cv2 import cv2
 
 
 class FileManager:

@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from code.extractors.converter import Converter
+from code.extractors.filemanager import FileManager
 from code.extractors.landmarker import FacialPredictor
 from code.extractors.operator import (
     get_translation_operator_matrix,
@@ -9,11 +10,7 @@ from code.extractors.operator import (
 )
 from code.extractors.painter import Painter
 from code.extractors.presenter import Presenter
-from code.extractors.filemanager import FileManager
 from code.utils import with_performance_profile
-
-from cv2 import cv2
-from PIL import Image
 
 from definitions import MODELS_DIR, PHOTOS_SRC_TEST_DIR
 
@@ -56,10 +53,12 @@ def main():
             # converter.numpy_array_to_pil_image(warped).show()
             painter.draw_points(pil_image, face_landmarks)
             # pil_image.show()
-            file_manager.save_np_array_image(np_warped, )
+            file_manager.save_np_array_image(
+                np_warped,
+            )
 
         logger.info("processed %s", image_path)
-        # presenter.display(np_image)
+        presenter.display(np_image)
 
 
 if __name__ == "__main__":

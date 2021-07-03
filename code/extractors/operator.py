@@ -1,8 +1,8 @@
+from code.utils import with_performance_profile
+
 import numpy
 from cv2 import cv2
 from numpy import dot
-
-from code.utils import with_performance_profile
 
 
 @with_performance_profile
