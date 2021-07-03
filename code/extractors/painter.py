@@ -16,6 +16,8 @@ class Painter:
         draw = Draw(image)
         for x, y in points.tolist():
             draw.regular_polygon(
-                bounding_circle=((x, y), radius), n_sides=3, fill=(0, 255, 0)
+                bounding_circle=((x, y), radius),  # type: ignore
+                n_sides=3,
+                fill=(0, 255, 0),
             )
         return image
