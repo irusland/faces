@@ -28,7 +28,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ runner.os }}-f1419afebd53902237fd286ce7b55873f186ceea5bd7df626c205d8742676456
 
       - name: Install dependencies
         run: poetry install
@@ -58,7 +58,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ runner.os }}-f1419afebd53902237fd286ce7b55873f186ceea5bd7df626c205d8742676456
 
       - name: .venv activate
         run: source .venv/bin/activate
@@ -86,7 +86,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ runner.os }}-f1419afebd53902237fd286ce7b55873f186ceea5bd7df626c205d8742676456
 
       - name: .venv activate
         run: source .venv/bin/activate
