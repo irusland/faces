@@ -1,8 +1,8 @@
 import sys
-from code.factory.corrector import Corrector
-from code.factory.pipe2image import get_image
 
-import cv2
+from corrector import Corrector
+from cv2 import cv2
+from pipe2image import get_image
 
 
 def start():

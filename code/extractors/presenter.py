@@ -1,11 +1,9 @@
-from code.utils import with_performance_profile
-
+import numpy
 from cv2 import cv2
-from PIL.Image import Image
 
 
 class Presenter:
-    @with_performance_profile
-    def display(self, image: Image) -> None:
-        cv2.imshow("image", image)
+    def display(self, image: numpy.ndarray) -> None:
+        image_normalized = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        cv2.imshow("image", image_normalized)
         cv2.waitKey(0)

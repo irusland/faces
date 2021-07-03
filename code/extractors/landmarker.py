@@ -1,3 +1,4 @@
+from code.utils import with_performance_profile
 from typing import Generator
 
 import dlib
@@ -13,6 +14,7 @@ class FacialPredictor:
         self._detector = dlib.get_frontal_face_detector()
         self._predictor: shape_predictor = dlib.shape_predictor(model_path)
 
+    @with_performance_profile
     def get_landmarks(
         self, image: numpy.ndarray
     ) -> Generator[numpy.ndarray, None, None]:
