@@ -3,7 +3,7 @@ import pickle
 import subprocess
 import time
 
-import cv2
+from cv2 import cv2
 
 from definitions import CACHE, CODE_DIR, PHOTOS_RES_DIR, PHOTOS_RES_TEST_DIR
 

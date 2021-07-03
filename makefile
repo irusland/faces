@@ -1,5 +1,7 @@
 VENV = .venv
 TESTS = tests
+CODE = code
+STUBS = ./stubs
 init:
 	python3.9 -m venv $(VENV)
 	poetry install
@@ -10,8 +12,7 @@ pretty:
 
 lint:
 	poetry run flake8 --exclude $(VENV) --ignore E203,W503
-	export MYPYPATH=./stubs
-	poetry run mypy --exclude $(VENV) --exclude $(TESTS) .
+	MYPYPATH=$(STUBS) poetry run mypy --exclude $(VENV) --exclude $(TESTS) $(CODE)
 
 plint: pretty lint
 
