@@ -32,11 +32,11 @@ def main():
     heic = reader.read_heif(image_path)
     pil_image = converter.pyheif_to_pil_image(heic)
     np_image = converter.pil_image_to_numpy_ndarray(pil_image)
-    dots = predictor.get_landmarks(np_image)
-    painter.draw_points(pil_image, dots)
+    for face_landmarks in predictor.get_landmarks(np_image):
+        painter.draw_points(pil_image, face_landmarks)
     logger.info("processed %s", image_path)
     pil_image.show()
-    presenter.display(pil_image)
+    # presenter.display(np_image)
 
 
 if __name__ == "__main__":
