@@ -1,5 +1,6 @@
+import pickle
 from code.utils import with_performance_profile
-from typing import Generator
+from typing import Generator, Iterator
 
 import dlib
 import numpy
@@ -29,3 +30,15 @@ class FacialPredictor:
                 [p.x, p.y] for p in self._predictor(image, face_bounds).parts()
             ]
             yield numpy.array(array)
+
+
+@with_performance_profile
+def np_landmarks_to_bytes(
+    arrays: Iterator[numpy.ndarray],
+) -> bytes:
+    return pickle.dumps(arrays)
+
+
+@with_performance_profile
+def bytes_landmarks_to_np(serialized: bytes) -> Iterator[numpy.ndarray]:
+    return pickle.loads(serialized)

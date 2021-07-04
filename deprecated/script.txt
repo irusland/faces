@@ -53,3 +53,24 @@ ffmpeg -i new1.mp4 -i new2.mp4 -i new3.mp4 -i new4.mp4 -filter_complex \
         "[0]setdar=16/9[a];[1]setdar=16/9[b];[2]setdar=16/9[c];[3]setdar=16/9[d]; \
          [a][b][c][d]concat=n=4:v=1:a=1" output.mp4
 
+
+
+
+ cat *.jpg | ffmpeg -f image2pipe -r 1 -vcodec mjpeg -i - -vcodec libx264 out.mp4
+
+ls -1 | grep "jpg$" | while read filename; do
+ffmpeg -v 0 -nostdin -i "$filename" -f rawvideo -s 120x60 -pix_fmt rgb24 -
+done | ffmpeg -nostdin -f rawvideo -s 120x60 -r 10 -pix_fmt rgb24 -i - -s 320x240 -vcodec libx264 -y res.mp4
+
+
+import ffmpeg
+in_file = ffmpeg.input('out.mp4')
+overlay_file = ffmpeg.input('pic.png')
+pic = ffmpeg.input('2.png')
+(
+ffmpeg
+            .concat(overlay_file, pic)
+            .overlay(overlay_file.hflip())
+            .drawbox(50, 50, 120, 120, color='red', thickness=5)
+            .output('out1.mp4').run()
+)

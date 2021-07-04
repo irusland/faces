@@ -1,7 +1,7 @@
 import abc
 import logging
 from code.utils import with_performance_profile
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from pydantic import BaseModel
 from pydantic.env_settings import BaseSettings
@@ -20,7 +20,7 @@ class TinyDBSettings(BaseSettings):
 
 class FacialData(BaseModel):
     image_hash: str
-    landmarks: List[List[Tuple[int, int]]]
+    landmarks: bytes
 
 
 class Database(abc.ABC):
@@ -40,6 +40,7 @@ class TinyDatabase(Database):
 
     @with_performance_profile
     def get_landmarks(self, image_hash: str) -> Optional[FacialData]:
+        logger.debug("Cache hit for %s", image_hash)
         Data = Query()
         results = self._landmarks_table.search(Data.image_hash == image_hash)
         if len(results) == 0:
