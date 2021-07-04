@@ -7,7 +7,7 @@ init:
 	poetry install
 
 pretty:
-	poetry run isort .
+	poetry run isort --profile "black" --line-length 79 .
 	poetry run black --line-length 79 .
 
 lint:
