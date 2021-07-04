@@ -1,10 +1,7 @@
 import hashlib
 import logging
-import sys
 from code.utils import with_performance_profile
 
-FORMAT = "[%(filename)15s|%(funcName)15s:%(lineno)4s] %(message)s"
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__file__)
 
 
@@ -18,4 +15,14 @@ def get_file_hash(path: str) -> str:
 
 
 if __name__ == "__main__":
-    print(get_file_hash("/Users/irusland/Desktop/123123123.PNG"))
+    print(
+        get_file_hash(
+            "/Users/irusland/Downloads/iCloud Photos 3/IMG_4565.HEIC"
+        )
+    )
+    print(
+        get_file_hash(
+            "/Users/irusland/Downloads/iCloud Photos 4/IMG_4565.HEIC"
+        )
+    )
+    print(get_file_hash("/Users/irusland/Downloads/IMG_4565.HEIC"))
