@@ -88,6 +88,11 @@ def executor(request):
         yield executor
 
 
+@pytest.fixture()
+def data_size():
+    return 100
+
+
 class TestRedisConcurrency:
     def _process_image(
         self, sut_redis: RedisDB, hash_: str, data_size: int
@@ -137,13 +142,81 @@ class TestRedisConcurrency:
         indirect=["executor"],
     )
     def test_multi_workers_set(
-        self, sut_redis, walrus, executor: Executor, task_count, log
+        self, sut_redis, walrus, executor: Executor, task_count, log, data_size
     ):
-        data_size = 100
         futures = []
 
         for i in range(task_count):
             hash_ = uuid.uuid4().hex
+            future = executor.submit(
+                self._process_image, sut_redis, hash_, data_size
+            )
+            futures.append(future)
+            logger.debug("%s submited", hash_)
+        executor.shutdown()
+
+        for future in futures:
+            expected = future.result()
+            actual = sut_redis.get_landmarks(expected.image_hash)
+            hash_ = walrus.Hash(expected.image_hash)
+            dict_ = hash_.as_dict(decode=False)
+            dict_ = decode_dict(dict_)
+            raw_actual = FacialData.parse_obj(dict_)
+            assert raw_actual == actual == expected
+
+        assert False
+
+    @pytest.mark.parametrize(
+        ("executor", "task_count"),
+        [
+            (1, 1),
+            (1, 10),
+            (1, 100),
+            (2, 1),
+            (2, 2),
+            (2, 20),
+            (2, 100),
+            (3, 1),
+            (3, 2),
+            (3, 2),
+            (3, 9),
+            (3, 10),
+            (3, 100),
+            (10, 10),
+            (10, 100),
+            (20, 1),
+            (20, 10),
+            (20, 20),
+            (20, 200),
+            (1, 500),
+            (2, 500),
+            (3, 500),
+            (4, 500),
+            (5, 500),
+            (20, 500),
+        ],
+        indirect=["executor"],
+    )
+    def test_multi_workers_get_set(
+        self, sut_redis, walrus, executor: Executor, task_count, log, data_size
+    ):
+        cached_count = task_count // 2
+        to_process_count = task_count - cached_count
+        cached_actual = []
+        for i in range(cached_count):
+            hash_ = uuid.uuid4().hex
+            data = self._process_image(sut_redis, hash_, data_size)
+            cached_actual.append(data)
+        assert len(cached_actual) == cached_count, 'inconclusive test!'
+        cached_hashes = {data.image_hash for data in cached_actual}
+        to_process_hashes = {uuid.uuid4().hex for _ in range(to_process_count)}
+        all_hashes = set.union(cached_hashes, to_process_hashes)
+        assert len(all_hashes) == task_count, 'inconclusive test!'
+        all_hashes = list(all_hashes)
+        random.shuffle(all_hashes)
+        futures = []
+
+        for hash_ in all_hashes:
             future = executor.submit(
                 self._process_image, sut_redis, hash_, data_size
             )
