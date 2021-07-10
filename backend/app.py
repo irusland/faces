@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from cv2 import cv2
 from dotenv import load_dotenv
+from PIL import Image
 
 from backend.db.database import Database, FacialData
 from backend.db.redis import RedisDB, RedisSettings
@@ -17,7 +18,8 @@ from backend.extractors.landmarker import (
 )
 from backend.extractors.operator import (
     get_translation_operator_matrix,
-    warp_image, scale,
+    scale,
+    warp_image,
 )
 from backend.extractors.painter import Painter
 from backend.file.utils import get_file_hash
@@ -27,9 +29,7 @@ from definitions import (
     MODELS_DIR,
     PHOTOS_RES_TEST_DIR,
     PHOTOS_SRC_TEST_DIR,
-    TINY_DB_FILE,
 )
-from PIL import Image
 
 FORMAT = (
     "[%(thread)15d |%(filename)15s|%(funcName)15s:%(lineno)4s] %(message)s"
@@ -101,7 +101,7 @@ def main():
             image_tasks.append(future)
     for task in image_tasks:
         task.result()
-    logger.info('All done')
+    logger.info("All done")
 
 
 def process_image(
@@ -158,6 +158,7 @@ def process_image(
 
     logger.info("processed %s", image_path)
     return anchor_landmarks, anchor_size
+
 
 if __name__ == "__main__":
     load_dotenv(DEV_ENV_PATH)

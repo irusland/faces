@@ -74,7 +74,11 @@ def get_translation_operator_matrix(points1, points2):
 
 
 @with_performance_profile
-def scale(points: numpy.array, input_size: Tuple[int, int], output_size: Tuple[int, int]) -> numpy.array:
+def scale(
+    points: numpy.array,
+    input_size: Tuple[int, int],
+    output_size: Tuple[int, int],
+) -> numpy.array:
     if input_size == output_size:
         return points
     output = points.copy()
