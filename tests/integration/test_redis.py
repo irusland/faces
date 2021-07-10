@@ -164,8 +164,6 @@ class TestRedisConcurrency:
             raw_actual = FacialData.parse_obj(dict_)
             assert raw_actual == actual == expected
 
-        assert False
-
     @pytest.mark.parametrize(
         ("executor", "task_count"),
         [
