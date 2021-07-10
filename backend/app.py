@@ -1,26 +1,25 @@
 import logging
 import os
 import sys
-from code.extractors.converter import Converter
-from code.extractors.filemanager import FileManager
-from code.extractors.landmarker import (
+from backend.extractors.converter import Converter
+from backend.extractors.filemanager import FileManager
+from backend.extractors.landmarker import (
     FacialPredictor,
     np_landmarks_to_str,
     str_landmarks_to_np,
 )
-from code.extractors.operator import (
+from backend.extractors.operator import (
     get_translation_operator_matrix,
     warp_image,
 )
-from code.extractors.painter import Painter
-from code.file.utils import get_file_hash
-from code.network.database import (
+from backend.extractors.painter import Painter
+from backend.file.utils import get_file_hash
+from backend.network.database import (
     Database,
     FacialData,
-    TinyDatabase,
-    TinyDBSettings,
 )
-from code.utils import with_performance_profile
+from backend.network.tinydb import TinyDatabase, TinyDBSettings
+from backend.utils import with_performance_profile
 from concurrent.futures import ThreadPoolExecutor
 
 from cv2 import cv2

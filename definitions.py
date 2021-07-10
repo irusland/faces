@@ -1,7 +1,7 @@
 import os
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-CODE_DIR = os.path.join(ROOT_DIR, "code")
+CODE_DIR = os.path.join(ROOT_DIR, "backend")
 MODELS_DIR = os.path.join(ROOT_DIR, "models")
 PHOTOS_SRC_DIR = os.path.join(ROOT_DIR, "src")
 PHOTOS_RES_DIR = os.path.join(ROOT_DIR, "res")

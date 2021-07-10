@@ -1,6 +1,6 @@
 import hashlib
 import logging
-from code.utils import with_performance_profile
+from backend.utils import with_performance_profile
 
 logger = logging.getLogger(__file__)
 

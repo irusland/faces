@@ -1,4 +1,4 @@
-from code.utils import with_performance_profile
+from backend.utils import with_performance_profile
 
 import numpy
 from cv2 import cv2

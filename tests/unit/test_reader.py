@@ -1,6 +1,6 @@
 import logging
-from code.extractors.converter import Converter
-from code.extractors.filemanager import FileManager
+from backend.extractors.converter import Converter
+from backend.extractors.filemanager import FileManager
 
 import pytest
 from PIL.Image import Image

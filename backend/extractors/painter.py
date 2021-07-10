@@ -1,5 +1,5 @@
 import logging
-from code.utils import with_performance_profile
+from backend.utils import with_performance_profile
 
 import numpy
 from PIL.Image import Image

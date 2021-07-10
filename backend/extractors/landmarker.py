@@ -1,6 +1,6 @@
 import base64
 import pickle
-from code.utils import with_performance_profile
+from backend.utils import with_performance_profile
 from typing import List
 
 import dlib

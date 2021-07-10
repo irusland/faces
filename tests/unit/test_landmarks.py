@@ -1,4 +1,4 @@
-from code.extractors.landmarker import (
+from backend.extractors.landmarker import (
     bytes_landmarks_to_np,
     np_landmarks_to_bytes,
 )
@@ -15,20 +15,20 @@ class TestConversion:
                 [
                     [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
                     [[3, 4], [1, 2], [1, 5]],
-                ]
+                ], dtype=object
             ),
             numpy.array(
                 [
                     [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
                     [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
                     [[3, 4], [1, 2], [1, 5]],
-                ]
+                ], dtype=object
             ),
             numpy.array(
                 [
                     [],
                     [[1, 2]],
-                ]
+                ], dtype=object
             ),
             numpy.array(
                 [

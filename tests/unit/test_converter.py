@@ -1,5 +1,5 @@
 import pickle
-from code.extractors.converter import Converter
+from backend.extractors.converter import Converter
 
 import pytest
 from PIL.Image import Image

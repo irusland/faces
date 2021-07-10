@@ -1,5 +1,5 @@
 import os
-from code.extractors.landmarker import FacialPredictor
+from backend.extractors.landmarker import FacialPredictor
 from typing import Tuple
 
 import numpy as np

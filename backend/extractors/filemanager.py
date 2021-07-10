@@ -1,6 +1,6 @@
 import logging
-from code.extractors.converter import Converter
-from code.utils import with_performance_profile
+from backend.extractors.converter import Converter
+from backend.utils import with_performance_profile
 from functools import singledispatchmethod
 from typing import Literal, Union
 

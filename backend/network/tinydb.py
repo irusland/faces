@@ -1,37 +1,11 @@
-import abc
-import logging
 import threading
-from code.utils import with_performance_profile
 from typing import Optional
 
-from pydantic import BaseModel
-from pydantic.env_settings import BaseSettings
-from tinydb import Query, TinyDB
+from pydantic import BaseSettings
+from tinydb import TinyDB, Query
 
-logger = logging.getLogger(__file__)
-
-
-class TinyDBSettings(BaseSettings):
-    storage_file: str
-    landmarks_table_name: str
-
-    class Config:
-        env_prefix = "TINY_DB_"
-
-
-class FacialData(BaseModel):
-    image_hash: str
-    landmarks: str
-
-
-class Database(abc.ABC):
-    @abc.abstractmethod
-    def save_landmarks(self, data: FacialData) -> str:
-        ...
-
-    @abc.abstractmethod
-    def get_landmarks(self, image_hash: str) -> FacialData:
-        ...
+from backend.network.database import Database, TinyDBSettings, FacialData, logger
+from backend.utils import with_performance_profile
 
 
 class TinyDatabase(Database):
@@ -61,3 +35,11 @@ class TinyDatabase(Database):
         self._landmarks_table.insert(data.dict())
         logger.info("Saved %s", data.image_hash)
         self._lock.release()
+
+
+class TinyDBSettings(BaseSettings):
+    storage_file: str
+    landmarks_table_name: str
+
+    class Config:
+        env_prefix = "TINY_DB_"
