@@ -1,6 +1,4 @@
 import logging
-from backend.extractors.converter import Converter
-from backend.utils import with_performance_profile
 from functools import singledispatchmethod
 from typing import Literal, Union
 
@@ -12,6 +10,9 @@ from cv2 import cv2
 from PIL.Image import Image
 from pydantic.main import BaseModel
 from pydantic.tools import parse_obj_as
+
+from backend.extractors.converter import Converter
+from backend.utils import with_performance_profile
 
 logger = logging.getLogger(__file__)
 

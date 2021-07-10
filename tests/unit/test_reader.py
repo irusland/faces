@@ -1,11 +1,11 @@
 import logging
-from backend.extractors.converter import Converter
-from backend.extractors.filemanager import FileManager
 
 import pytest
 from PIL.Image import Image
 from pyheif import HeifFile
 
+from backend.extractors.converter import Converter
+from backend.extractors.filemanager import FileManager
 from tests.utils import path_to_file
 
 logger = logging.getLogger(__file__)

@@ -1,10 +1,10 @@
+import numpy.testing
+import pytest
+
 from backend.extractors.landmarker import (
     bytes_landmarks_to_np,
     np_landmarks_to_bytes,
 )
-
-import numpy.testing
-import pytest
 
 
 class TestConversion:
@@ -15,20 +15,23 @@ class TestConversion:
                 [
                     [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
                     [[3, 4], [1, 2], [1, 5]],
-                ], dtype=object
+                ],
+                dtype=object,
             ),
             numpy.array(
                 [
                     [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
                     [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
                     [[3, 4], [1, 2], [1, 5]],
-                ], dtype=object
+                ],
+                dtype=object,
             ),
             numpy.array(
                 [
                     [],
                     [[1, 2]],
-                ], dtype=object
+                ],
+                dtype=object,
             ),
             numpy.array(
                 [

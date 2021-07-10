@@ -1,9 +1,10 @@
 import logging
-from backend.utils import with_performance_profile
 
 import numpy
 from PIL.Image import Image
 from PIL.ImageDraw import Draw
+
+from backend.utils import with_performance_profile
 
 logger = logging.getLogger(__file__)
 

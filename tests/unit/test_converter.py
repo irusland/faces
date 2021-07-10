@@ -1,10 +1,10 @@
 import pickle
-from backend.extractors.converter import Converter
 
 import pytest
 from PIL.Image import Image
 from pyheif import HeifFile
 
+from backend.extractors.converter import Converter
 from tests.utils import path_to_file
 
 

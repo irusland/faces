@@ -1,6 +1,13 @@
 import logging
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
+
+from cv2 import cv2
+from dotenv import load_dotenv
+
+from backend.db.database import Database, FacialData
+from backend.db.tinydb import TinyDatabase, TinyDBSettings
 from backend.extractors.converter import Converter
 from backend.extractors.filemanager import FileManager
 from backend.extractors.landmarker import (
@@ -14,17 +21,7 @@ from backend.extractors.operator import (
 )
 from backend.extractors.painter import Painter
 from backend.file.utils import get_file_hash
-from backend.network.database import (
-    Database,
-    FacialData,
-)
-from backend.network.tinydb import TinyDatabase, TinyDBSettings
 from backend.utils import with_performance_profile
-from concurrent.futures import ThreadPoolExecutor
-
-from cv2 import cv2
-from dotenv import load_dotenv
-
 from definitions import (
     DEV_ENV_PATH,
     MODELS_DIR,

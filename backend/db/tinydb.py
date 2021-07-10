@@ -2,9 +2,9 @@ import threading
 from typing import Optional
 
 from pydantic import BaseSettings
-from tinydb import TinyDB, Query
+from tinydb import Query, TinyDB
 
-from backend.network.database import Database, TinyDBSettings, FacialData, logger
+from backend.db.database import Database, FacialData, TinyDBSettings, logger
 from backend.utils import with_performance_profile
 
 

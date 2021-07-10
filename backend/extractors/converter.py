@@ -1,9 +1,9 @@
-from backend.utils import with_performance_profile
-
 import numpy
 import PIL.Image as img
 import pyheif
 from PIL.Image import Image
+
+from backend.utils import with_performance_profile
 
 
 class Converter:

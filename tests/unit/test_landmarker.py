@@ -1,10 +1,10 @@
 import os
-from backend.extractors.landmarker import FacialPredictor
 from typing import Tuple
 
 import numpy as np
 import pytest
 
+from backend.extractors.landmarker import FacialPredictor
 from definitions import MODELS_DIR
 from tests.utils import path_to_file
 

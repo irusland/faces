@@ -1,11 +1,12 @@
 import base64
 import pickle
-from backend.utils import with_performance_profile
 from typing import List
 
 import dlib
 import numpy
 from dlib import shape_predictor
+
+from backend.utils import with_performance_profile
 
 
 class FacialPredictor:
