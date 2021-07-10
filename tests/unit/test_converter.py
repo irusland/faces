@@ -1,10 +1,10 @@
 import pickle
-from code.extractors.converter import Converter
 
 import pytest
 from PIL.Image import Image
 from pyheif import HeifFile
 
+from backend.extractors.converter import Converter
 from tests.utils import path_to_file
 
 
@@ -28,5 +28,5 @@ class TestConverter:
 
     @pytest.mark.parametrize("image", ["face.pil_image"], indirect=True)
     def test_pil_np_conversion(self, converter, image: Image):
-        array = converter.pil_image_to_numpy_ndarray(image)
+        array = converter.pil_image_to_numpy_array(image)
         assert array.shape == (*image.size[::-1], 3)

@@ -13,6 +13,9 @@ class VideoCapture:
 def imshow(name: str, image) -> None:
     pass
 
+def imwrite(filename, image) -> None:
+    pass
+
 def waitKey(delay: Optional[int] = None) -> int:
     pass
 
@@ -44,3 +47,4 @@ def circle(
 ) -> None: ...
 def fillConvexPoly(img, points, color, lineType=None, shift=None): ...
 def convexHull(points, hull=None, clockwise=None, returnPoints=None): ...
+def resize(src, dsize, dst=None, fx=None, fy=None, interpolation=None): ...

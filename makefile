@@ -1,13 +1,13 @@
 VENV = .venv
 TESTS = tests
-CODE = code
+CODE = backend
 STUBS = ./stubs
 init:
 	python3.9 -m venv $(VENV)
 	poetry install
 
 pretty:
-	poetry run isort .
+	poetry run isort --profile "black" --line-length 79 .
 	poetry run black --line-length 79 .
 
 lint:
@@ -27,3 +27,13 @@ xml-test:
 
 hopen:
 	open -a Safari htmlcov/index.html
+
+prepare:
+	docker run --name redis-db --publish=6379:6379 --hostname=redis --restart=on-failure --detach redis
+
+redis:
+	docker stop redis-db
+	docker start redis-db
+
+redis-save:
+	docker cp redis-db:/data/dump.rdb /dump.rdb
