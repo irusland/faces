@@ -24,10 +24,11 @@ class RedisDB(Database):
         )
 
     def get_landmarks(self, image_hash: str) -> FacialData:
-        pass
+        hash_ = self._db.Hash(image_hash)
+        dict_ = hash_.as_dict(decode=True)
+        return FacialData.parse_obj(dict_)
 
     def save_landmarks(self, data: FacialData) -> Optional[str]:
         key = data.image_hash
         hash_ = self._db.Hash(key)
-        hash_.update(**data.dict())
-        return ""
+        return hash_.update(**data.dict())

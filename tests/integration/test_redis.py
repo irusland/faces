@@ -45,3 +45,20 @@ class TestRedis:
         dict_ = hash_.as_dict(decode=True)
         actual = FacialData.parse_obj(dict_)
         assert actual == facial_data
+
+    @pytest.mark.parametrize(
+        "facial_data",
+        [
+            FacialData(image_hash="123123", landmarks=b"\x02asdasd"),
+            FacialData(image_hash="11111111111", landmarks="\x02asdasd"),
+            FacialData(image_hash="", landmarks="\000"),
+        ],
+    )
+    def test_simple_get(self, sut_redis, walrus, facial_data):
+        key = facial_data.image_hash
+        hash_ = walrus.Hash(key)
+        hash_.update(facial_data.dict())
+
+        actual = sut_redis.get_landmarks(facial_data.image_hash)
+        
+        assert actual == facial_data
