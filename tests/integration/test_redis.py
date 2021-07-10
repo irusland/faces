@@ -207,11 +207,11 @@ class TestRedisConcurrency:
             hash_ = uuid.uuid4().hex
             data = self._process_image(sut_redis, hash_, data_size)
             cached_actual.append(data)
-        assert len(cached_actual) == cached_count, 'inconclusive test!'
+        assert len(cached_actual) == cached_count, "inconclusive test!"
         cached_hashes = {data.image_hash for data in cached_actual}
         to_process_hashes = {uuid.uuid4().hex for _ in range(to_process_count)}
         all_hashes = set.union(cached_hashes, to_process_hashes)
-        assert len(all_hashes) == task_count, 'inconclusive test!'
+        assert len(all_hashes) == task_count, "inconclusive test!"
         all_hashes = list(all_hashes)
         random.shuffle(all_hashes)
         futures = []

@@ -4,8 +4,16 @@ from typing import Optional
 from pydantic import BaseSettings
 from tinydb import Query, TinyDB
 
-from backend.db.database import Database, FacialData, TinyDBSettings, logger
+from backend.db.database import Database, FacialData, logger
 from backend.utils import with_performance_profile
+
+
+class TinyDBSettings(BaseSettings):
+    storage_file: str
+    landmarks_table_name: str
+
+    class Config:
+        env_prefix = "TINY_DB_"
 
 
 class TinyDatabase(Database):
@@ -35,11 +43,3 @@ class TinyDatabase(Database):
         self._landmarks_table.insert(data.dict())
         logger.info("Saved %s", data.image_hash)
         self._lock.release()
-
-
-class TinyDBSettings(BaseSettings):
-    storage_file: str
-    landmarks_table_name: str
-
-    class Config:
-        env_prefix = "TINY_DB_"

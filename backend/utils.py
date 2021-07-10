@@ -100,9 +100,9 @@ def autolog(stack_shift: int, message: str, *args: Any):
         message % args,
         lineno,
         executable,
-        extra={
-            "filename": filename,
-            "lineno": lineno,
-            "funcName": funcname,
-        },
+        # extra={
+        #     "filename": filename,
+        #     "lineno": lineno,
+        #     "funcName": funcname,
+        # },
     )
