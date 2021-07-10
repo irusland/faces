@@ -560,14 +560,6 @@ pymysql = ["pymysql (<1)", "pymysql"]
 sqlcipher = ["sqlcipher3-binary"]
 
 [[package]]
-name = "tinydb"
-version = "4.5.0"
-description = "TinyDB is a tiny, document oriented database optimized for your happiness :)"
-category = "main"
-optional = false
-python-versions = ">=3.5,<4.0"
-
-[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -618,7 +610,7 @@ python-versions = ">=3.6"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "c758d931529d6499d296f4be6a28b09b51bc688f3bc58543a1e561d0f974f884"
+content-hash = "4ab6de1f818e5d219aae2cfeccb8d65870e5a06c049066a0abaf2a1eaa906b2e"
 
 [metadata.files]
 appdirs = [
@@ -1146,10 +1138,6 @@ sqlalchemy = [
     {file = "SQLAlchemy-1.4.20-cp39-cp39-win32.whl", hash = "sha256:46b99eab618cdc1c871ea707b7c52edc23cfea6c750740cd242ba62b5c84de7f"},
     {file = "SQLAlchemy-1.4.20-cp39-cp39-win_amd64.whl", hash = "sha256:b86d83fefc8a8c394f3490c37e1953bc16c311a3d1d1cf91518793bfb9847fb4"},
     {file = "SQLAlchemy-1.4.20.tar.gz", hash = "sha256:38ee3a266afef2978e82824650457f70c5d74ec0cadec1b10fe5ed6f038eb5d0"},
-]
-tinydb = [
-    {file = "tinydb-4.5.0-py3-none-any.whl", hash = "sha256:ab2669b88ba1e1b3e1bd6da1a1e3ee284fde6fbf327fb16a206ac3954915f37f"},
-    {file = "tinydb-4.5.0.tar.gz", hash = "sha256:d287cd092f19a2b8553d0a6018f172c351268fb8619898eb87633d9e2c036344"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
