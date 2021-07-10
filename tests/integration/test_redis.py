@@ -7,7 +7,7 @@ import pytest
 from walrus import Walrus
 
 from backend.db.database import FacialData
-from backend.db.redis import RedisDB, RedisSettings
+from backend.db.redis import RedisDB, RedisSettings, decode_dict
 
 logger = logging.getLogger(__file__)
 
@@ -153,22 +153,9 @@ class TestRedisConcurrency:
 
         for future in futures:
             expected = future.result()
+            actual = sut_redis.get_landmarks(expected.image_hash)
             hash_ = walrus.Hash(expected.image_hash)
             dict_ = hash_.as_dict(decode=False)
-            dict_ = _decode_dict(dict_)
-            actual = FacialData.parse_obj(dict_)
-            assert actual == expected
-
-
-def _decode(s):
-    try:
-        return s.decode("utf-8") if isinstance(s, bytes) else s
-    except UnicodeDecodeError:
-        return s
-
-
-def _decode_dict(d):
-    accum = {}
-    for key in d:
-        accum[_decode(key)] = _decode(d[key])
-    return accum
+            dict_ = decode_dict(dict_)
+            raw_actual = FacialData.parse_obj(dict_)
+            assert raw_actual == actual == expected
