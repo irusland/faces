@@ -58,7 +58,9 @@ def log_args(logger: logging.Logger, level=logging.DEBUG, cache=dict()):
                 """
                 return func(*args, **kwargs)
             finally:
-                logger.__class__ = logger_class
+                # todo fix for multithreading
+                # logger.__class__ = logger_class
+                pass
 
         return return_func
 
@@ -100,9 +102,9 @@ def autolog(stack_shift: int, message: str, *args: Any):
         message % args,
         lineno,
         executable,
-        # extra={
-        #     "filename": filename,
-        #     "lineno": lineno,
-        #     "funcName": funcname,
-        # },
+        extra={
+            "filename": filename,
+            "lineno": lineno,
+            "funcName": funcname,
+        },
     )
