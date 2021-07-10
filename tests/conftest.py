@@ -1,3 +1,6 @@
+from pytest_mock_resources import create_redis_fixture
+
+
 def pytest_addoption(parser):
     parser.addoption("--silent", action="store_true", default=False)
 
@@ -21,3 +24,6 @@ def pytest_report_teststatus(report, config):
         return category, short, verbose
     category = report.outcome
     return category, short, verbose
+
+
+redis = create_redis_fixture()

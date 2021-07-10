@@ -13,3 +13,4 @@ htmlcov
 
 .coverage
 /coverage.xml
+/dump.rdb

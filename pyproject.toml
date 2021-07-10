@@ -27,6 +27,7 @@ ffmpeg-python = "^0.2.0"
 python-magic = "^0.4.24"
 redis = "^3.5.3"
 walrus = "^0.8.2"
+pytest-mock-resources = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
 

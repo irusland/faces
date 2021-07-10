@@ -1,6 +1,7 @@
 from typing import Optional
 
 from pydantic.env_settings import BaseSettings
+from pydantic.main import Extra
 from walrus import Walrus
 
 from backend.db.database import Database, FacialData
@@ -13,6 +14,7 @@ class RedisSettings(BaseSettings):
 
     class Config:
         env_prefix = "REDIS_SETTINGS_"
+        extra = Extra.ignore
 
 
 class RedisDB(Database):
