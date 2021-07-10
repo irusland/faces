@@ -1,6 +1,6 @@
 VENV = .venv
 TESTS = tests
-CODE = code
+CODE = backend
 STUBS = ./stubs
 init:
 	python3.9 -m venv $(VENV)

@@ -1,18 +1,15 @@
 import abc
 import logging
-from typing import Optional, TypeVar
+from typing import Optional
 
 from pydantic import BaseModel
 
 logger = logging.getLogger(__file__)
 
 
-FaceLandmarks = TypeVar("FaceLandmarks", str, bytes)
-
-
 class FacialData(BaseModel):
     image_hash: str
-    landmarks: FaceLandmarks
+    landmarks: bytes
 
     class Config:
         orm_mode = True
@@ -24,5 +21,5 @@ class Database(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_landmarks(self, image_hash: str) -> FacialData:
+    def get_landmarks(self, image_hash: str) -> Optional[FacialData]:
         ...
