@@ -4,6 +4,7 @@ import logging
 from typing import Optional, Tuple
 
 from pydantic import BaseModel
+from pydantic.class_validators import validator
 
 logger = logging.getLogger(__file__)
 
@@ -23,7 +24,25 @@ class MetaData(ImageData):
     origin_path: str
     save_path: str
     size: Tuple[int, int]
-    datetime_original: datetime.datetime
+    datetime_original: Optional[datetime.datetime]
+
+    @validator('*', pre=True)
+    def none_as_none(cls, v):
+        if v == 'None':
+            return None
+        return v
+
+    @validator('size', pre=True)
+    def size_to_tuple(cls, v):
+        if isinstance(v, str):
+            return eval(v)
+        return v
+
+    def __hash__(self):
+        return hash(self.image_hash)
+
+    def __eq__(self, other):
+        return self.image_hash == other.image_hash
 
 
 class Database(abc.ABC):

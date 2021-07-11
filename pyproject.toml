@@ -28,6 +28,7 @@ redis = "^3.5.3"
 walrus = "^0.8.2"
 pytest-mock-resources = "^2.1.0"
 scipy = "^1.7.0"
+tqdm = "^4.61.2"
 
 [tool.poetry.dev-dependencies]
 

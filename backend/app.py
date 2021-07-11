@@ -1,8 +1,12 @@
+import fnmatch
 import logging
 import os
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
+import tqdm
 import numpy as np
 from cv2 import cv2
 from dotenv import load_dotenv
@@ -34,12 +38,24 @@ from definitions import (
 FORMAT = (
     "[%(thread)15d |%(filename)15s|%(funcName)15s:%(lineno)4s] %(message)s"
 )
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__file__)
 
 
 def path(filename: str) -> str:
     return os.path.join(PHOTOS_SRC_TEST_DIR, filename)
+
+
+def get_paths_to_process(source_dir: str):
+    includes = ['*.jpg', '*.png', '*.heic', '*.jpeg', '*.heif']
+    includes = r'|'.join([fnmatch.translate(x) for x in includes])
+    files = set()
+    for (dirpath, dirnames, filenames) in os.walk(source_dir):
+        files.update(
+            {os.path.join(source_dir, filename) for filename in filenames if
+             re.match(includes, filename, flags=re.IGNORECASE)}
+        )
+    return files
 
 
 @with_performance_profile
@@ -57,12 +73,11 @@ def main():
 
     source_dir = PHOTOS_SRC_TEST_DIR
     result_dir = PHOTOS_RES_TEST_DIR
-    # image_path_reference = path("IMG_4541.HEIC")
-    image_path_reference = path("IMG_2149.HEIC")
+    image_path_reference = '/Users/irusland/LocalProjects/faces/src_test/SAMPLE.jpg'
 
     anchor_landmarks = None
     anchor_size = None
-    is_processed, anchor_landmarks, anchor_size = process_image(
+    is_processed, anchor_landmarks, anchor_size, _ = process_image(
         image_path_reference,
         result_dir,
         file_manager,
@@ -74,47 +89,39 @@ def main():
         anchor_size,
     )
     logger.debug("reference set")
-    files = [image_path_reference]
-    for (dirpath, dirnames, filenames) in os.walk(source_dir):
-        files.extend(
-            os.path.join(source_dir, filename) for filename in filenames
-        )
 
-    image_tasks = {}
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        for image_path in files:
-            future = executor.submit(
-                process_image,
-                *(
-                    image_path,
-                    result_dir,
-                    file_manager,
-                    converter,
-                    database,
-                    predictor,
-                    painter,
-                    anchor_landmarks,
-                    anchor_size,
-                ),
-            )
-            image_tasks[image_path] = future
-    for image_path, task in image_tasks.items():
-        is_processed, *_ = task.result()
+    files = get_paths_to_process(source_dir)
+
+    process_image_path = partial(
+        process_image,
+        result_dir=result_dir,
+        file_manager=file_manager,
+        converter=converter,
+        database=database,
+        predictor=predictor,
+        painter=painter,
+        anchor_landmarks=anchor_landmarks,
+        anchor_size=anchor_size,
+    )
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        results = list(tqdm.tqdm(executor.map(process_image_path, files), total=len(files)))
+
+    for is_processed, _, _, image_path in results:
         if not is_processed:
             logger.info("%s was not processed", image_path)
     logger.info("All done")
 
 
 def process_image(
-    image_path,
-    result_dir,
-    file_manager,
-    converter,
-    database,
-    predictor,
-    painter,
-    anchor_landmarks,
-    anchor_size,
+        image_path,
+        result_dir,
+        file_manager,
+        converter,
+        database,
+        predictor,
+        painter,
+        anchor_landmarks,
+        anchor_size,
 ):
     try:
         image_hash = get_file_hash(image_path)
@@ -155,17 +162,17 @@ def process_image(
 
         logger.info("processed %s", image_path)
 
-        return True, main_landmarks, pil_image.size
+        return True, main_landmarks, pil_image.size, image_path
     except Exception as e:
         logger.error("Failed %s", image_path, exc_info=e)
-        return False, None, None
+        return False, None, None, image_path
 
 
 def get_or_create_landmarks(
-    image_hash,
-    np_image,
-    database: Database,
-    predictor: FacialPredictor,
+        image_hash,
+        np_image,
+        database: Database,
+        predictor: FacialPredictor,
 ):
     face_data = database.get_landmarks(image_hash)
     if face_data:
@@ -181,16 +188,16 @@ def get_or_create_landmarks(
 
 
 def scale_adjust(
-    face_landmarks: np.ndarray,
-    anchor_landmarks,
-    anchor_size,
-    pil_image,
-    np_image,
+        face_landmarks: np.ndarray,
+        anchor_landmarks,
+        anchor_size,
+        pil_image,
+        np_image,
 ) -> np.ndarray:
     if anchor_size is not None and pil_image.size != anchor_size:
         np_image = cv2.resize(np_image, anchor_size)
         face_landmarks = scale(face_landmarks, pil_image.size, anchor_size)
-        logger.info("resize %s -> %s", pil_image.size, anchor_size)
+        logger.debug("resize %s -> %s", pil_image.size, anchor_size)
 
     if anchor_landmarks is not None:
         operator_matrix = get_translation_operator_matrix(
