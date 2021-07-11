@@ -26,13 +26,13 @@ class MetaData(ImageData):
     size: Tuple[int, int]
     datetime_original: Optional[datetime.datetime]
 
-    @validator('*', pre=True)
+    @validator("*", pre=True)
     def none_as_none(cls, v):
-        if v == 'None':
+        if v == "None":
             return None
         return v
 
-    @validator('size', pre=True)
+    @validator("size", pre=True)
     def size_to_tuple(cls, v):
         if isinstance(v, str):
             return eval(v)

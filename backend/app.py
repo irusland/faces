@@ -3,11 +3,12 @@ import logging
 import os
 import re
 import sys
+from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
-import tqdm
 import numpy as np
+import tqdm
 from cv2 import cv2
 from dotenv import load_dotenv
 
@@ -47,13 +48,16 @@ def path(filename: str) -> str:
 
 
 def get_paths_to_process(source_dir: str):
-    includes = ['*.jpg', '*.png', '*.heic', '*.jpeg', '*.heif']
-    includes = r'|'.join([fnmatch.translate(x) for x in includes])
+    includes = ["*.jpg", "*.png", "*.heic", "*.jpeg", "*.heif"]
+    include_pattern = r"|".join([fnmatch.translate(x) for x in includes])
     files = set()
     for (dirpath, dirnames, filenames) in os.walk(source_dir):
         files.update(
-            {os.path.join(source_dir, filename) for filename in filenames if
-             re.match(includes, filename, flags=re.IGNORECASE)}
+            {
+                os.path.join(source_dir, filename)
+                for filename in filenames
+                if re.match(include_pattern, filename, flags=re.IGNORECASE)
+            }
         )
     return files
 
@@ -69,11 +73,13 @@ def main():
     painter = Painter()
     db_settings = RedisSettings()
     database = RedisDB(db_settings)
-    logger.info("Operators prepared")
+    logger.debug("Operators prepared")
 
     source_dir = PHOTOS_SRC_TEST_DIR
     result_dir = PHOTOS_RES_TEST_DIR
-    image_path_reference = '/Users/irusland/LocalProjects/faces/src_test/SAMPLE.jpg'
+    image_path_reference = (
+        "/Users/irusland/LocalProjects/faces/src_test/SAMPLE.jpg"
+    )
 
     anchor_landmarks = None
     anchor_size = None
@@ -103,31 +109,35 @@ def main():
         anchor_landmarks=anchor_landmarks,
         anchor_size=anchor_size,
     )
+    failed = []
     with ThreadPoolExecutor(max_workers=20) as executor:
-        results = list(tqdm.tqdm(executor.map(process_image_path, files), total=len(files)))
+        tasks = [executor.submit(process_image_path, file) for file in files]
 
-    for is_processed, _, _, image_path in results:
-        if not is_processed:
-            logger.info("%s was not processed", image_path)
-    logger.info("All done")
+        for future in tqdm.tqdm(futures.as_completed(tasks), total=len(files)):
+            is_processed, _, _, image_path = future.result()
+            if not is_processed:
+                failed.append(image_path)
+
+    for path_ in failed:
+        logger.info("%s was not processed", path_)
 
 
 def process_image(
-        image_path,
-        result_dir,
-        file_manager,
-        converter,
-        database,
-        predictor,
-        painter,
-        anchor_landmarks,
-        anchor_size,
+    image_path,
+    result_dir,
+    file_manager,
+    converter,
+    database,
+    predictor,
+    painter,
+    anchor_landmarks,
+    anchor_size,
 ):
     try:
         image_hash = get_file_hash(image_path)
         processed_image_path = os.path.join(result_dir, f"{image_hash}.jpg")
 
-        logger.info(
+        logger.debug(
             "processing %s (%s) -> %s",
             image_path,
             image_hash,
@@ -160,7 +170,7 @@ def process_image(
         )
         database.save_info(meta)
 
-        logger.info("processed %s", image_path)
+        logger.debug("processed %s", image_path)
 
         return True, main_landmarks, pil_image.size, image_path
     except Exception as e:
@@ -169,10 +179,10 @@ def process_image(
 
 
 def get_or_create_landmarks(
-        image_hash,
-        np_image,
-        database: Database,
-        predictor: FacialPredictor,
+    image_hash,
+    np_image,
+    database: Database,
+    predictor: FacialPredictor,
 ):
     face_data = database.get_landmarks(image_hash)
     if face_data:
@@ -188,11 +198,11 @@ def get_or_create_landmarks(
 
 
 def scale_adjust(
-        face_landmarks: np.ndarray,
-        anchor_landmarks,
-        anchor_size,
-        pil_image,
-        np_image,
+    face_landmarks: np.ndarray,
+    anchor_landmarks,
+    anchor_size,
+    pil_image,
+    np_image,
 ) -> np.ndarray:
     if anchor_size is not None and pil_image.size != anchor_size:
         np_image = cv2.resize(np_image, anchor_size)

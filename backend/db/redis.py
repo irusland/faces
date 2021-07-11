@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Type, TypeVar, List
+from typing import Dict, Iterable, Optional, Type, TypeVar
 
 from pydantic.env_settings import BaseSettings
 from pydantic.main import Extra
@@ -61,15 +61,12 @@ class RedisDB(Database, MetaDatabase):
     def save_info(self, data: MetaData) -> Optional[str]:
         return self._update(self._meta_info_db, data)
 
-    def get_all_infos(self) -> List[MetaData]:
-        keys = self._meta_info_db.keys('*')
+    def get_all_infos(self) -> Iterable[MetaData]:
+        keys = self._meta_info_db.keys("*")
         for key in keys:
             hash_ = self._meta_info_db.Hash(key)
             if dict_ := hash_.as_dict(decode=True):
-                try:
-                    yield MetaData.parse_obj(dict_)
-                except:
-                    raise Exception(dict_)
+                yield MetaData.parse_obj(dict_)
 
 
 def model_to_dict(model: ImageData) -> Dict[str, str]:
@@ -98,4 +95,4 @@ def str_dict(d) -> Dict[str, str]:
             accum[str(key)] = value
         else:
             accum[str(key)] = str(value)
-    return accum
+    return accum  # type: ignore

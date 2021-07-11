@@ -6,7 +6,9 @@ from typing import Optional
 import exifread
 
 from backend.utils import with_performance_profile
+
 logger = logging.getLogger(__file__)
+
 
 @with_performance_profile
 def get_file_hash(path: str) -> str:
@@ -28,6 +30,7 @@ def get_datetime_original(path: str) -> Optional[datetime.datetime]:
 
         for key in _keys:
             if tag := tags.get(key):
-                return datetime.datetime.strptime(tag.values,
-                                                  _format)  # type: ignore
+                return datetime.datetime.strptime(
+                    tag.values, _format  # type: ignore
+                )
         return None
