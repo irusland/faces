@@ -1,5 +1,8 @@
+import datetime
 import hashlib
 import logging
+
+import exifread
 
 from backend.utils import with_performance_profile
 
@@ -15,15 +18,12 @@ def get_file_hash(path: str) -> str:
     return hash_md5.hexdigest()
 
 
-if __name__ == "__main__":
-    print(
-        get_file_hash(
-            "/Users/irusland/Downloads/iCloud Photos 3/IMG_4565.HEIC"
+@with_performance_profile
+def get_datetime_original(path: str) -> datetime.datetime:
+    _format = "%Y:%m:%d %H:%M:%S"
+    with open(path, "rb") as fh:
+        tags = exifread.process_file(  # type: ignore
+            fh, stop_tag="EXIF DateTimeOriginal"
         )
-    )
-    print(
-        get_file_hash(
-            "/Users/irusland/Downloads/iCloud Photos 4/IMG_4565.HEIC"
-        )
-    )
-    print(get_file_hash("/Users/irusland/Downloads/IMG_4565.HEIC"))
+        tag = tags["EXIF DateTimeOriginal"]
+        return datetime.datetime.strptime(tag.values, _format)  # type: ignore
