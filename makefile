@@ -36,4 +36,4 @@ redis:
 	docker start redis-db
 
 redis-save:
-	docker cp redis-db:/data/dump.rdb /dump.rdb
+	docker cp redis-db:/data/dump.rdb dump.rdb

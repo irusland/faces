@@ -5,7 +5,7 @@ description = ""
 authors = ["Ruslan Sirazhetdinov <ruslansir@icloud.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "3.8"
 dlib = "^19.22.0"
 numpy = "^1.20.3"
 opencv-python = "^4.5.2"
@@ -27,6 +27,8 @@ python-magic = "^0.4.24"
 redis = "^3.5.3"
 walrus = "^0.8.2"
 pytest-mock-resources = "^2.1.0"
+scipy = "^1.7.0"
+tqdm = "^4.61.2"
 
 [tool.poetry.dev-dependencies]
 

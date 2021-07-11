@@ -1,9 +1,13 @@
 import os
 from typing import Tuple
 
+import numpy
 import numpy as np
 import pytest
+from scipy.stats import percentileofscore
 
+from backend.extractors.converter import Converter
+from backend.extractors.filemanager import FileManager
 from backend.extractors.landmarker import FacialPredictor
 from definitions import MODELS_DIR
 from tests.utils import path_to_file
@@ -49,3 +53,87 @@ class TestFacialPredictor:
         expected_count, predictor = predictor_fixture
         for face_landmarks in predictor.get_landmarks(single_face_image):
             len(face_landmarks)
+
+
+@pytest.fixture()
+def converter() -> Converter:
+    return Converter()
+
+
+@pytest.fixture()
+def file_manager(converter: Converter) -> FileManager:
+    return FileManager(converter)
+
+
+@pytest.fixture()
+def to_test_face_image(
+    request, file_manager: FileManager, converter: Converter
+):
+    pil_image = file_manager.read_pil_auto(request.param)
+    return converter.pil_image_to_numpy_array(pil_image)
+
+
+@pytest.fixture()
+def authentic_image(request, file_manager: FileManager, converter: Converter):
+    pil_image = file_manager.read_pil_auto(request.param)
+    return converter.pil_image_to_numpy_array(pil_image)
+
+
+class TestMultipleFaces:
+    @pytest.mark.parametrize(
+        ("to_test_face_image", "authentic_image"),
+        [
+            (
+                path_to_file("bigger_wins_test.PNG"),
+                path_to_file("bigger_wins_expected.PNG"),
+            ),
+            (
+                path_to_file("extract_center_test.HEIC"),
+                path_to_file("extract_center_expected.HEIC"),
+            ),
+            (
+                path_to_file("small_center_wins_test.jpg"),
+                path_to_file("small_center_wins_expected.jpg"),
+            ),
+        ],
+        indirect=True,
+    )
+    def test_select_main_face(
+        self,
+        predictor_fixture: Tuple[int, FacialPredictor],
+        to_test_face_image: numpy.ndarray,
+        authentic_image: numpy.ndarray,
+    ):
+        max_pixel_distance = 20
+        _, predictor = predictor_fixture
+        height, width, colors = authentic_image.shape
+        mid_point = numpy.array([width / 2, height / 2])
+
+        landmarks = predictor.get_landmarks(to_test_face_image)
+        actual = predictor.select_main_face(landmarks, mid_point)
+
+        (expected_face,) = predictor.get_landmarks(authentic_image)
+        diff = expected_face - actual
+        diff_sm = (np.sqrt(diff * diff)).mean(axis=1)
+        score = percentileofscore(diff_sm, max_pixel_distance)
+        assert score > 90
+
+    @pytest.mark.parametrize(
+        "to_test_face_image",
+        [
+            path_to_file("no_faces.jpg"),
+        ],
+        indirect=True,
+    )
+    def test_no_faces(
+        self,
+        predictor_fixture: Tuple[int, FacialPredictor],
+        to_test_face_image: numpy.ndarray,
+    ):
+        _, predictor = predictor_fixture
+        height, width, colors = to_test_face_image.shape
+        mid_point = numpy.array([width / 2, height / 2])
+
+        landmarks = predictor.get_landmarks(to_test_face_image)
+        with pytest.raises(RuntimeError):
+            predictor.select_main_face(landmarks, mid_point)

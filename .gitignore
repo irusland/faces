@@ -14,3 +14,4 @@ htmlcov
 .coverage
 /coverage.xml
 /dump.rdb
+timeline.txt

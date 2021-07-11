@@ -17,6 +17,10 @@ class Converter:
     def pil_image_to_numpy_array(self, image: Image) -> numpy.ndarray:
         return numpy.array(image)
 
+    def pil_image_center(self, image: Image) -> numpy.ndarray:
+        w, h = image.size
+        return numpy.array([w / 2, h / 2])
+
     @with_performance_profile
     def numpy_array_to_pil_image(self, image: numpy.ndarray) -> Image:
         return img.fromarray(image)

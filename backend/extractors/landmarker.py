@@ -5,6 +5,7 @@ from typing import List
 import dlib
 import numpy
 from dlib import shape_predictor
+from scipy import spatial
 
 from backend.utils import with_performance_profile
 
@@ -36,6 +37,17 @@ class FacialPredictor:
             ]
             faces.append(numpy.array(array))
         return faces
+
+    @with_performance_profile
+    def select_main_face(
+        self, landmarks: List[numpy.ndarray], middle_point: numpy.ndarray
+    ) -> numpy.ndarray:
+        if not landmarks:
+            raise RuntimeError("No landmarks")
+        means = [numpy.mean(face, axis=0) for face in landmarks]
+        tree = spatial.KDTree(means)
+        distance, index = tree.query(middle_point)
+        return landmarks[index]
 
 
 @with_performance_profile
