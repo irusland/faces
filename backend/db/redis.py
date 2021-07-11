@@ -1,4 +1,4 @@
-from typing import Optional, Type, TypeVar
+from typing import Dict, Optional, Type, TypeVar
 
 from pydantic.env_settings import BaseSettings
 from pydantic.main import Extra
@@ -47,7 +47,7 @@ class RedisDB(Database, MetaDatabase):
     def _update(self, db: Walrus, data: ImageData) -> Optional[str]:
         key = data.image_hash
         hash_ = db.Hash(key)
-        return hash_.update(**data.dict())
+        return hash_.update(model_to_dict(data))
 
     def get_landmarks(self, image_hash: str) -> Optional[FacialData]:
         return self._get(self._db, image_hash, FacialData)
@@ -62,6 +62,10 @@ class RedisDB(Database, MetaDatabase):
         return self._update(self._db, data)
 
 
+def model_to_dict(model: ImageData) -> Dict[str, str]:
+    return str_dict(model.dict())
+
+
 def _decode(s):
     try:
         return s.decode("utf-8") if isinstance(s, bytes) else s
@@ -73,4 +77,11 @@ def decode_dict(d):
     accum = {}
     for key in d:
         accum[_decode(key)] = _decode(d[key])
+    return accum
+
+
+def str_dict(d) -> Dict[str, str]:
+    accum = {}
+    for key in d:
+        accum[str(key)] = str(d[key])
     return accum

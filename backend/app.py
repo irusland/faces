@@ -62,7 +62,7 @@ def main():
 
     anchor_landmarks = None
     anchor_size = None
-    anchor_landmarks, anchor_size = process_image(
+    is_processed, anchor_landmarks, anchor_size = process_image(
         image_path_reference,
         result_dir,
         file_manager,
@@ -74,14 +74,13 @@ def main():
         anchor_size,
     )
     logger.debug("reference set")
-
     files = [image_path_reference]
     for (dirpath, dirnames, filenames) in os.walk(source_dir):
         files.extend(
             os.path.join(source_dir, filename) for filename in filenames
         )
 
-    image_tasks = []
+    image_tasks = {}
     with ThreadPoolExecutor(max_workers=10) as executor:
         for image_path in files:
             future = executor.submit(
@@ -98,9 +97,11 @@ def main():
                     anchor_size,
                 ),
             )
-            image_tasks.append(future)
-    for task in image_tasks:
-        task.result()
+            image_tasks[image_path] = future
+    for image_path, task in image_tasks.items():
+        is_processed, *_ = task.result()
+        if not is_processed:
+            logger.info("%s was not processed", image_path)
     logger.info("All done")
 
 
@@ -111,7 +112,7 @@ def process_image(
     converter,
     database,
     predictor,
-    presenter,
+    painter,
     anchor_landmarks,
     anchor_size,
 ):
@@ -132,12 +133,13 @@ def process_image(
         landmarks = get_or_create_landmarks(
             image_hash, np_image, database, predictor
         )
-        main_landmarks = predictor.select_main_face(landmarks)
+        middle_point = converter.pil_image_center(pil_image)
+        main_landmarks = predictor.select_main_face(landmarks, middle_point)
         np_warped = scale_adjust(
             main_landmarks, anchor_landmarks, anchor_size, pil_image, np_image
         )
 
-        presenter.show()
+        painter.draw_points(pil_image, main_landmarks)
 
         file_manager.save_np_array_image(np_warped, processed_image_path)
 
@@ -179,24 +181,23 @@ def get_or_create_landmarks(
 
 
 def scale_adjust(
-    landmarks: np.ndarray,
+    face_landmarks: np.ndarray,
     anchor_landmarks,
     anchor_size,
     pil_image,
     np_image,
-):
-    # face_landmarks = select_main_face(landmarks)
-    for face_landmarks in landmarks:
-        if anchor_size and pil_image.size != anchor_size:
-            np_image = cv2.resize(np_image, anchor_size)
-            face_landmarks = scale(face_landmarks, pil_image.size, anchor_size)
-            logger.info("resize %s -> %s", pil_image.size, anchor_size)
+) -> np.ndarray:
+    if anchor_size is not None and pil_image.size != anchor_size:
+        np_image = cv2.resize(np_image, anchor_size)
+        face_landmarks = scale(face_landmarks, pil_image.size, anchor_size)
+        logger.info("resize %s -> %s", pil_image.size, anchor_size)
 
+    if anchor_landmarks is not None:
         operator_matrix = get_translation_operator_matrix(
             anchor_landmarks, face_landmarks
         )
-
         return warp_image(np_image, operator_matrix)
+    return np_image
 
 
 if __name__ == "__main__":

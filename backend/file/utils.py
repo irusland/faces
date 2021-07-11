@@ -1,12 +1,9 @@
 import datetime
 import hashlib
-import logging
 
 import exifread
 
 from backend.utils import with_performance_profile
-
-logger = logging.getLogger(__file__)
 
 
 @with_performance_profile
