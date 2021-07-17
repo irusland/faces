@@ -7,6 +7,7 @@ import numpy
 import PIL
 import pyheif
 from cv2 import cv2
+from PIL import ImageOps
 from PIL.Image import Image
 from pydantic.main import BaseModel
 from pydantic.tools import parse_obj_as
@@ -48,7 +49,8 @@ class FileManager:
     def read_pil_auto(self, path: str) -> Image:
         extension = self._get_supported(path)
         logger.debug("Got %s %s", extension, path)
-        return self._read(extension, path)
+        image = self._read(extension, path)
+        return ImageOps.exif_transpose(image)
 
     @singledispatchmethod
     def _read(self, extension: Extension, path: str) -> Image:

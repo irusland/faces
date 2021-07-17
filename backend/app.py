@@ -2,10 +2,10 @@ import fnmatch
 import logging
 import os
 import re
-import sys
 from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from typing import List, Tuple
 
 import numpy as np
 import tqdm
@@ -28,7 +28,7 @@ from backend.extractors.operator import (
 )
 from backend.extractors.painter import Painter
 from backend.file.utils import get_datetime_original, get_file_hash
-from backend.utils import with_performance_profile
+from backend.utils import setup_global_logging, with_performance_profile
 from definitions import (
     DEV_ENV_PATH,
     MODELS_DIR,
@@ -36,11 +36,9 @@ from definitions import (
     PHOTOS_SRC_TEST_DIR,
 )
 
-FORMAT = (
-    "[%(thread)15d |%(filename)15s|%(funcName)15s:%(lineno)4s] %(message)s"
-)
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=FORMAT)
+setup_global_logging()
 logger = logging.getLogger(__file__)
+DEBUG_DISPLAY = False
 
 
 def path(filename: str) -> str:
@@ -77,22 +75,31 @@ def main():
 
     source_dir = PHOTOS_SRC_TEST_DIR
     result_dir = PHOTOS_RES_TEST_DIR
+    # source_dir = '/Users/irusland/LocalProjects/faces_data/iCloud_Photos_All'
+    # result_dir = '/Users/ir
+    # usland/LocalProjects/faces_data/iCloud_Results_All'
+    logger.debug("IN\t%s", source_dir)
+    logger.debug("OUT\t%s", result_dir)
+
     image_path_reference = (
-        "/Users/irusland/LocalProjects/faces/src_test/SAMPLE.jpg"
+        # "/Users/irusland/LocalProjects/faces/models/SAMPLE.jpg"
+        "/Users/irusland/LocalProjects/faces/src_test/IMG_9909.JPG"
     )
+    logger.debug("Reference image %s", image_path_reference)
 
     anchor_landmarks = None
     anchor_size = None
     is_processed, anchor_landmarks, anchor_size, _ = process_image(
-        image_path_reference,
-        result_dir,
-        file_manager,
-        converter,
-        database,
-        predictor,
-        painter,
-        anchor_landmarks,
-        anchor_size,
+        image_path=image_path_reference,
+        result_dir=result_dir,
+        file_manager=file_manager,
+        converter=converter,
+        database=database,
+        predictor=predictor,
+        painter=painter,
+        anchor_landmarks=anchor_landmarks,
+        anchor_size=anchor_size,
+        override=True,
     )
     logger.debug("reference set")
 
@@ -132,6 +139,7 @@ def process_image(
     painter,
     anchor_landmarks,
     anchor_size,
+    override: bool = False,
 ):
     try:
         image_hash = get_file_hash(image_path)
@@ -147,57 +155,74 @@ def process_image(
         np_image = converter.pil_image_to_numpy_array(pil_image)
         np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
 
-        landmarks = get_or_create_landmarks(
+        landmarks, was_created = _get_or_create_landmarks(
             image_hash, np_image, database, predictor
         )
-        middle_point = converter.pil_image_center(pil_image)
-        main_landmarks = predictor.select_main_face(landmarks, middle_point)
-        np_warped = scale_adjust(
-            main_landmarks, anchor_landmarks, anchor_size, pil_image, np_image
-        )
+        if was_created or override:
+            middle_point = converter.pil_image_center(pil_image)
+            main_landmarks = predictor.select_main_face(
+                landmarks, middle_point
+            )
+            np_warped = _scale_adjust(
+                main_landmarks,
+                anchor_landmarks,
+                anchor_size,
+                pil_image,
+                np_image,
+            )
+            file_manager.save_np_array_image(np_warped, processed_image_path)
+            if DEBUG_DISPLAY:
+                painter.draw_points(pil_image, main_landmarks)
 
-        painter.draw_points(pil_image, main_landmarks)
+            datetime_original = get_datetime_original(image_path)
+            meta = MetaData(
+                image_hash=image_hash,
+                origin_path=image_path,
+                save_path=processed_image_path,
+                size=pil_image.size,
+                datetime_original=datetime_original,
+            )
+            database.save_info(meta)
+            logger.debug("Processed %s", image_path)
+            return True, main_landmarks, pil_image.size, image_path
 
-        file_manager.save_np_array_image(np_warped, processed_image_path)
-
-        datetime_original = get_datetime_original(image_path)
-        meta = MetaData(
-            image_hash=image_hash,
-            origin_path=image_path,
-            save_path=processed_image_path,
-            size=pil_image.size,
-            datetime_original=datetime_original,
-        )
-        database.save_info(meta)
-
-        logger.debug("processed %s", image_path)
-
-        return True, main_landmarks, pil_image.size, image_path
+        logger.debug("Already processed %s", image_path)
+        return True, None, None, image_path
     except Exception as e:
         logger.error("Failed %s", image_path, exc_info=e)
         return False, None, None, image_path
 
 
-def get_or_create_landmarks(
-    image_hash,
-    np_image,
+def _save_landmarks(
+    image_hash: str, landmarks: np.ndarray, database: Database
+) -> None:
+    data = FacialData(
+        image_hash=image_hash,
+        landmarks=np_landmarks_to_str(landmarks),
+    )
+    database.save_landmarks(data)
+
+
+def _get_or_create_landmarks(
+    image_hash: str,
+    np_image: np.ndarray,
     database: Database,
     predictor: FacialPredictor,
-):
+) -> Tuple[List[np.ndarray], bool]:
     face_data = database.get_landmarks(image_hash)
     if face_data:
         landmarks = str_landmarks_to_np(face_data.landmarks)
-    else:
-        landmarks = list(predictor.get_landmarks(np_image))
-        data = FacialData(
-            image_hash=image_hash,
-            landmarks=np_landmarks_to_str(landmarks),
-        )
-        database.save_landmarks(data)
-    return landmarks
+        if len(landmarks) > 0:
+            logger.debug("Recovered facial data %s", face_data)
+            return landmarks, False
+
+    logger.debug("Recognizing facial data %s", face_data)
+    landmarks = predictor.get_landmarks(np_image)
+    _save_landmarks(image_hash, landmarks, database)
+    return landmarks, True
 
 
-def scale_adjust(
+def _scale_adjust(
     face_landmarks: np.ndarray,
     anchor_landmarks,
     anchor_size,

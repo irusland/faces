@@ -1,8 +1,177 @@
 import logging
+import os
 import re
-from functools import wraps
+import sys
+from datetime import datetime
+from functools import lru_cache, wraps
 from time import perf_counter
 from typing import Any
+
+from definitions import LOGS_DIR
+
+FORMAT = (
+    "%(levelname)-9s[%(thread)15d "
+    "|%(filename)15s|%(funcName)15s:"
+    "%(lineno)4s] %(message)s"
+)
+
+
+@lru_cache()
+def _get_log_datetime() -> datetime:
+    return datetime.now()
+
+
+def _get_log_name(prefix: str) -> str:
+    return f"{prefix}-{_get_log_datetime()}.log"
+
+
+def _get_log_path(filename: str) -> str:
+    return os.path.join(LOGS_DIR, filename)
+
+
+def get_log_path(prefix: str) -> str:
+    filename = _get_log_name(prefix)
+    return _get_log_path(filename)
+
+
+class OnlyFilter(logging.Filter):
+    def __init__(self, level):
+        super().__init__()
+        self._level = level
+
+    def filter(self, log_record: logging.LogRecord):
+        return log_record.levelno <= self._level
+
+
+class ExcludeModuleFilter(logging.Filter):
+    def __init__(self, *exclude_modules: str):
+        super().__init__()
+        self._exclude_modules = exclude_modules
+
+    def filter(self, log_record: logging.LogRecord):
+        return log_record.module not in self._exclude_modules
+
+
+class ExcludeDirFilter(logging.Filter):
+    def __init__(self, exclude_dir: str):
+        super().__init__()
+        self._exclude_dir = exclude_dir
+
+    def filter(self, log_record: logging.LogRecord):
+        return self._exclude_dir not in log_record.pathname
+
+
+@lru_cache()
+def get_debug_file_handler() -> logging.FileHandler:
+    log_path = get_log_path("debug")
+    handler = logging.FileHandler(log_path)
+    formatter = logging.Formatter(FORMAT)
+    handler.setFormatter(formatter)
+    handler.addFilter(ExcludeDirFilter(".venv/"))
+    handler.setLevel(logging.DEBUG)
+    return handler
+
+
+@lru_cache()
+def get_trace_file_handler() -> logging.FileHandler:
+    log_path = get_log_path("trace")
+    handler = logging.FileHandler(log_path)
+    formatter = logging.Formatter(FORMAT)
+    handler.setFormatter(formatter)
+    handler.addFilter(OnlyFilter(logging.TRACE))
+    handler.setLevel(logging.TRACE)
+    return handler
+
+
+@lru_cache()
+def get_info_file_handler() -> logging.FileHandler:
+    log_path = get_log_path("info")
+    handler = logging.FileHandler(log_path)
+    formatter = logging.Formatter(FORMAT)
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.INFO)
+    return handler
+
+
+@lru_cache()
+def get_info_console_handler() -> logging.StreamHandler:
+    handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter(FORMAT)
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.INFO)
+    return handler
+
+
+def addLoggingLevel(levelName, levelNum, methodName=None):
+    """
+    Comprehensively adds a new logging level to the `logging` module and the
+    currently configured logging class.
+
+    `levelName` becomes an attribute of the `logging` module with the value
+    `levelNum`. `methodName` becomes a convenience method for both `logging`
+    itself and the class returned by `logging.getLoggerClass()` (usually just
+    `logging.Logger`). If `methodName` is not specified, `levelName.lower()` is
+    used.
+
+    To avoid accidental clobberings of existing attributes, this method will
+    raise an `AttributeError` if the level name is already an attribute of the
+    `logging` module or if the method name is already present
+
+    Example
+    -------
+    >>> addLoggingLevel('TRACE', logging.DEBUG - 5)
+    >>> logging.getLogger(__name__).setLevel("TRACE")
+    >>> logging.getLogger(__name__).trace('that worked')
+    >>> logging.trace('so did this')
+    >>> logging.TRACE
+    5
+
+    """
+    if not methodName:
+        methodName = levelName.lower()
+
+    if hasattr(logging, levelName):
+        raise AttributeError(
+            "{} already defined in logging module".format(levelName)
+        )
+    if hasattr(logging, methodName):
+        raise AttributeError(
+            "{} already defined in logging module".format(methodName)
+        )
+    if hasattr(logging.getLoggerClass(), methodName):
+        raise AttributeError(
+            "{} already defined in logger class".format(methodName)
+        )
+
+    # This method was inspired by the answers to Stack Overflow post
+    # http://stackoverflow.com/q/2183233/2988730, especially
+    # http://stackoverflow.com/a/13638084/2988730
+    def logForLevel(self, message, *args, **kwargs):
+        if self.isEnabledFor(levelNum):
+            self._log(levelNum, message, args, **kwargs)
+
+    def logToRoot(message, *args, **kwargs):
+        logging.log(levelNum, message, *args, **kwargs)
+
+    logging.addLevelName(levelNum, levelName)
+    setattr(logging, levelName, levelNum)
+    setattr(logging.getLoggerClass(), methodName, logForLevel)
+    setattr(logging, methodName, logToRoot)
+
+
+def setup_global_logging() -> None:
+    addLoggingLevel("TRACE", logging.DEBUG - 5)
+    logging.basicConfig(
+        level=logging.TRACE,
+        format=FORMAT,
+        handlers=[
+            get_debug_file_handler(),
+            get_info_console_handler(),
+            get_info_file_handler(),
+            get_trace_file_handler(),
+        ],
+    )
+
 
 logger = logging.getLogger(__file__)
 
@@ -19,7 +188,7 @@ def makeRecord(
     func=None,
     extra=None,
     sinfo=None,
-    **kwargs
+    **kwargs,
 ):
     """
     A factory method which can be overridden in subclasses to create
@@ -97,7 +266,7 @@ def autolog(stack_shift: int, message: str, *args: Any):
         (callie,) = code_context
     executable = re.sub(r"\n", "", callie)
     filename = filename.split("/")[-1]
-    logger.debug(
+    logger.trace(
         "%s | line %s\t:%s",
         message % args,
         lineno,
