@@ -10,7 +10,7 @@ from typing import Any
 from definitions import LOGS_DIR
 
 FORMAT = (
-    "%(levelname)-9s[%(thread)15d "
+    "(%(asctime)s) %(levelname)-9s[%(thread)15d "
     "|%(filename)15s|%(funcName)15s:"
     "%(lineno)4s] %(message)s"
 )

@@ -75,15 +75,13 @@ def main():
 
     source_dir = PHOTOS_SRC_TEST_DIR
     result_dir = PHOTOS_RES_TEST_DIR
-    # source_dir = '/Users/irusland/LocalProjects/faces_data/iCloud_Photos_All'
-    # result_dir = '/Users/ir
-    # usland/LocalProjects/faces_data/iCloud_Results_All'
-    logger.debug("IN\t%s", source_dir)
-    logger.debug("OUT\t%s", result_dir)
+    source_dir = "/Users/irusland/LocalProjects/faces_data/iCloud_Photos_All"
+    result_dir = "/Users/irusland/LocalProjects/faces_data/iCloud_Results_All"
+    logger.info("IN\t%s", source_dir)
+    logger.info("OUT\t%s", result_dir)
 
     image_path_reference = (
-        # "/Users/irusland/LocalProjects/faces/models/SAMPLE.jpg"
-        "/Users/irusland/LocalProjects/faces/src_test/IMG_9909.JPG"
+        "/Users/irusland/LocalProjects/faces/models/SAMPLE.jpg"
     )
     logger.debug("Reference image %s", image_path_reference)
 
@@ -158,6 +156,15 @@ def process_image(
         landmarks, was_created = _get_or_create_landmarks(
             image_hash, np_image, database, predictor
         )
+        datetime_original = get_datetime_original(image_path)
+        meta = MetaData(
+            image_hash=image_hash,
+            origin_path=image_path,
+            save_path=processed_image_path,
+            size=pil_image.size,
+            datetime_original=datetime_original,
+        )
+        database.save_info(meta)
         if was_created or override:
             middle_point = converter.pil_image_center(pil_image)
             main_landmarks = predictor.select_main_face(
@@ -174,15 +181,6 @@ def process_image(
             if DEBUG_DISPLAY:
                 painter.draw_points(pil_image, main_landmarks)
 
-            datetime_original = get_datetime_original(image_path)
-            meta = MetaData(
-                image_hash=image_hash,
-                origin_path=image_path,
-                save_path=processed_image_path,
-                size=pil_image.size,
-                datetime_original=datetime_original,
-            )
-            database.save_info(meta)
             logger.debug("Processed %s", image_path)
             return True, main_landmarks, pil_image.size, image_path
 

@@ -41,16 +41,21 @@ class FileManager:
     def __init__(self, converter: Converter):
         self._converter = converter
 
+    @with_performance_profile
     def _get_supported(self, path: str) -> Extension:
         mime = magic.from_file(path, mime=True)
         return parse_obj_as(Supported, dict(extension=mime))  # type: ignore
+
+    @with_performance_profile
+    def _orient(self, image: Image) -> Image:
+        return ImageOps.exif_transpose(image)
 
     @with_performance_profile
     def read_pil_auto(self, path: str) -> Image:
         extension = self._get_supported(path)
         logger.debug("Got %s %s", extension, path)
         image = self._read(extension, path)
-        return ImageOps.exif_transpose(image)
+        return self._orient(image)
 
     @singledispatchmethod
     def _read(self, extension: Extension, path: str) -> Image:
