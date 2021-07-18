@@ -25,5 +25,4 @@ class TestGetDatetimeOriginal:
         ],
     )
     def test_no_time(self, path):
-        with pytest.raises(Exception):
-            get_datetime_original(path)
+        assert get_datetime_original(path) is None

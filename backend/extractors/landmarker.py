@@ -1,4 +1,5 @@
 import base64
+import logging
 import pickle
 from typing import List
 
@@ -8,6 +9,8 @@ from dlib import shape_predictor
 from scipy import spatial
 
 from backend.utils import with_performance_profile
+
+logger = logging.getLogger(__file__)
 
 
 class FacialPredictor:
@@ -28,6 +31,7 @@ class FacialPredictor:
         """
         rectangles = dlib.get_frontal_face_detector()(image, 1)
         faces = []
+        logger.debug("Detected %s faces", len(rectangles))
         for face_bounds in rectangles:
             array = [
                 [p.x, p.y]

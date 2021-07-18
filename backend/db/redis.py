@@ -4,13 +4,7 @@ from pydantic.env_settings import BaseSettings
 from pydantic.main import Extra
 from walrus import Walrus
 
-from backend.db.database import (
-    Database,
-    FacialData,
-    ImageData,
-    MetaData,
-    MetaDatabase,
-)
+from backend.db.database import CacheDatabase, FacialData, ImageData, MetaData
 
 
 class RedisSettings(BaseSettings):
@@ -27,7 +21,7 @@ class RedisSettings(BaseSettings):
 DataType = TypeVar("DataType", bound=ImageData)
 
 
-class RedisDB(Database, MetaDatabase):
+class RedisDB(CacheDatabase):
     def __init__(self, settings: RedisSettings):
         self._db = Walrus(
             host=settings.host, port=settings.port, db=settings.db

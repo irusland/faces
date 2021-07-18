@@ -7,6 +7,7 @@ import numpy
 import PIL
 import pyheif
 from cv2 import cv2
+from PIL import ImageOps
 from PIL.Image import Image
 from pydantic.main import BaseModel
 from pydantic.tools import parse_obj_as
@@ -40,15 +41,21 @@ class FileManager:
     def __init__(self, converter: Converter):
         self._converter = converter
 
+    @with_performance_profile
     def _get_supported(self, path: str) -> Extension:
         mime = magic.from_file(path, mime=True)
         return parse_obj_as(Supported, dict(extension=mime))  # type: ignore
 
     @with_performance_profile
+    def _orient(self, image: Image) -> Image:
+        return ImageOps.exif_transpose(image)
+
+    @with_performance_profile
     def read_pil_auto(self, path: str) -> Image:
         extension = self._get_supported(path)
         logger.debug("Got %s %s", extension, path)
-        return self._read(extension, path)
+        image = self._read(extension, path)
+        return self._orient(image)
 
     @singledispatchmethod
     def _read(self, extension: Extension, path: str) -> Image:
@@ -75,3 +82,4 @@ class FileManager:
     @with_performance_profile
     def save_np_array_image(self, image: numpy.ndarray, filename: str) -> None:
         cv2.imwrite(filename, image)
+        logger.debug("saved %s", filename)

@@ -1,5 +1,15 @@
 from pytest_mock_resources import create_redis_fixture
 
+from tests.logs import setup_test_logging
+
+
+def pytest_addhooks(pluginmanager):
+    """
+    Executes before modules imports,
+    so we can prepare our environment
+    """
+    setup_test_logging()
+
 
 def pytest_addoption(parser):
     parser.addoption("--silent", action="store_true", default=False)
