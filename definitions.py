@@ -14,3 +14,7 @@ DEV_ENV_PATH = os.path.join(ENV_DIR, "dev.env")
 PROD_ENV_PATH = os.path.join(ENV_DIR, "prod.env")
 TIMELINE_FILE = os.path.join(ROOT_DIR, "timeline.txt")
 LOGS_DIR = os.path.join(ROOT_DIR, "logs")
+TEST_LOGS_DIR = os.path.join(ROOT_DIR, "tests", "data", "test_logs")
+PREDICTOR_PATH_68 = os.path.join(
+    MODELS_DIR, "shape_predictor_68_face_landmarks.dat"
+)

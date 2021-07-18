@@ -17,3 +17,5 @@ htmlcov
 timeline.txt
 logs
 todo.txt
+/tests/data/results/*
+*.log

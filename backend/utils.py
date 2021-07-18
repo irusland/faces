@@ -25,13 +25,13 @@ def _get_log_name(prefix: str) -> str:
     return f"{prefix}-{_get_log_datetime()}.log"
 
 
-def _get_log_path(filename: str) -> str:
-    return os.path.join(LOGS_DIR, filename)
+def _get_log_path(directory: str, filename: str) -> str:
+    return os.path.join(directory, filename)
 
 
-def get_log_path(prefix: str) -> str:
+def get_log_path(directory: str, prefix: str) -> str:
     filename = _get_log_name(prefix)
-    return _get_log_path(filename)
+    return _get_log_path(directory, filename)
 
 
 class OnlyFilter(logging.Filter):
@@ -62,8 +62,8 @@ class ExcludeDirFilter(logging.Filter):
 
 
 @lru_cache()
-def get_debug_file_handler() -> logging.FileHandler:
-    log_path = get_log_path("debug")
+def get_debug_file_handler(directory: str = LOGS_DIR) -> logging.FileHandler:
+    log_path = get_log_path(directory, "debug")
     handler = logging.FileHandler(log_path)
     formatter = logging.Formatter(FORMAT)
     handler.setFormatter(formatter)
@@ -73,8 +73,8 @@ def get_debug_file_handler() -> logging.FileHandler:
 
 
 @lru_cache()
-def get_trace_file_handler() -> logging.FileHandler:
-    log_path = get_log_path("trace")
+def get_trace_file_handler(directory: str = LOGS_DIR) -> logging.FileHandler:
+    log_path = get_log_path(directory, "trace")
     handler = logging.FileHandler(log_path)
     formatter = logging.Formatter(FORMAT)
     handler.setFormatter(formatter)
@@ -84,8 +84,8 @@ def get_trace_file_handler() -> logging.FileHandler:
 
 
 @lru_cache()
-def get_info_file_handler() -> logging.FileHandler:
-    log_path = get_log_path("info")
+def get_info_file_handler(directory: str = LOGS_DIR) -> logging.FileHandler:
+    log_path = get_log_path(directory, "info")
     handler = logging.FileHandler(log_path)
     formatter = logging.Formatter(FORMAT)
     handler.setFormatter(formatter)
@@ -161,15 +161,16 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
 
 def setup_global_logging() -> None:
     addLoggingLevel("TRACE", logging.DEBUG - 5)
+    handlers = [
+        get_debug_file_handler(),
+        get_info_console_handler(),
+        get_info_file_handler(),
+        get_trace_file_handler(),
+    ]
     logging.basicConfig(
         level=logging.TRACE,
         format=FORMAT,
-        handlers=[
-            get_debug_file_handler(),
-            get_info_console_handler(),
-            get_info_file_handler(),
-            get_trace_file_handler(),
-        ],
+        handlers=handlers,
     )
 
 

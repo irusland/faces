@@ -1,6 +1,9 @@
 import datetime
+import fnmatch
 import hashlib
 import logging
+import os
+import re
 from typing import Optional
 
 import exifread
@@ -34,3 +37,18 @@ def get_datetime_original(path: str) -> Optional[datetime.datetime]:
                     tag.values, _format  # type: ignore
                 )
         return None
+
+
+def get_paths_to_process(source_dir: str):
+    includes = ["*.jpg", "*.png", "*.heic", "*.jpeg", "*.heif"]
+    include_pattern = r"|".join([fnmatch.translate(x) for x in includes])
+    files = set()
+    for (dirpath, dirnames, filenames) in os.walk(source_dir):
+        files.update(
+            {
+                os.path.join(source_dir, filename)
+                for filename in filenames
+                if re.match(include_pattern, filename, flags=re.IGNORECASE)
+            }
+        )
+    return files

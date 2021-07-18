@@ -1,15 +1,14 @@
-import logging
-
 from pytest_mock_resources import create_redis_fixture
 
-from backend.utils import addLoggingLevel
+from tests.logs import setup_test_logging
 
 
-def _setup_test_logging() -> None:
-    addLoggingLevel("TRACE", logging.DEBUG - 5)
-
-
-_setup_test_logging()
+def pytest_addhooks(pluginmanager):
+    """
+    Executes before modules imports,
+    so we can prepare our environment
+    """
+    setup_test_logging()
 
 
 def pytest_addoption(parser):

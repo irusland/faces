@@ -31,7 +31,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     database = providers.Singleton(
-        RedisDB,
+        RedisDB,  # todo Interface
         settings=db_settings,
     )
 
