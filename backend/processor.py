@@ -30,6 +30,7 @@ from backend.file.utils import (
     get_file_hash,
     get_paths_to_process,
 )
+from backend.settings import ProcessorSettings
 from backend.utils import with_performance_profile
 
 logger = logging.getLogger(__file__)
@@ -38,18 +39,16 @@ logger = logging.getLogger(__file__)
 @inject
 @with_performance_profile
 def process_images(
-    source_dir: str = Provide[Container.config.source_dir],
-    result_dir: str = Provide[Container.config.result_dir],
-    image_reference_path: str = Provide[Container.config.image_reference_path],
+    settings: ProcessorSettings = Provide[Container.processor_settings],
     file_manager: FileManager = Provide[Container.file_manager],
     converter: Converter = Provide[Container.converter],
     database: CacheDatabase = Provide[Container.database],
     predictor: FacialPredictor = Provide[Container.predictor],
     painter: Painter = Provide[Container.painter],
 ):
-    source_dir, result_dir, image_reference_path = map(
-        os.path.abspath, [source_dir, result_dir, image_reference_path]
-    )
+    source_dir = settings.source_settings.path
+    result_dir = settings.result_settings.path
+    image_reference_path = settings.reference_settings.path
     logger.info("IN\t%s", source_dir)
     logger.info("OUT\t%s", result_dir)
     logger.info("REF\t%s", image_reference_path)

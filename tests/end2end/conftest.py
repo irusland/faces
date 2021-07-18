@@ -35,9 +35,6 @@ def load_env():
 def container(load_env, redis_settings, test_redis):
     container = Container()
     container.config.model_path.from_value(PREDICTOR_PATH_68)
-    container.config.source_dir.from_env("PHOTOS_SOURCE_DIR")
-    container.config.result_dir.from_env("PHOTOS_RESULT_DIR")
-    container.config.image_reference_path.from_env("IMAGE_REFERENCE")
 
     with container.db_settings.override(redis_settings):
         logger.debug("Container prepared")

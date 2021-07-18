@@ -22,7 +22,7 @@ def log(caplog):
 
 @pytest.fixture()
 def prepare_dirs(container: Container):
-    os.makedirs(container.result_dir, exist_ok=True)
+    os.makedirs(container.result_settings().path, exist_ok=True)
 
 
 class TestProcessing:
@@ -34,7 +34,7 @@ class TestProcessing:
         converter = container.converter()
         predictor = container.predictor()
         reader = container.file_manager()
-        reference = container.config.image_reference_path()
+        reference = container.reference_settings().path
         pil_reference = reader.read_pil_auto(reference)
         np_image = converter.pil_image_to_numpy_array(pil_reference)
         np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
