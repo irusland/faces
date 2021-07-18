@@ -82,3 +82,4 @@ class FileManager:
     @with_performance_profile
     def save_np_array_image(self, image: numpy.ndarray, filename: str) -> None:
         cv2.imwrite(filename, image)
+        logger.debug('saved %s', filename)

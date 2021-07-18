@@ -47,6 +47,9 @@ def process_images(
     predictor: FacialPredictor = Provide[Container.predictor],
     painter: Painter = Provide[Container.painter],
 ):
+    source_dir, result_dir, image_reference_path = map(
+        os.path.abspath, [source_dir, result_dir, image_reference_path]
+    )
     logger.info("IN\t%s", source_dir)
     logger.info("OUT\t%s", result_dir)
     logger.info("REF\t%s", image_reference_path)
