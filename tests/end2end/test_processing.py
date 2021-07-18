@@ -1,19 +1,15 @@
 import logging
 import os
 import sys
-from unittest import mock
-from scipy.stats import percentileofscore
 
-import numpy
 import numpy as np
 import pytest
 from cv2 import cv2
+from scipy.stats import percentileofscore
 
 from backend.container import Container
 from backend.extractors.landmarker import str_landmarks_to_np
-from backend.extractors.operator import scale
-from backend.file.utils import get_file_hash
-from backend.processor import process_images, _scale_adjust
+from backend.processor import process_images
 
 logger = logging.getLogger(__file__)
 
@@ -33,16 +29,13 @@ class TestProcessing:
         reader = container.file_manager()
         reference = container.config.image_reference_path()
         pil_reference = reader.read_pil_auto(reference)
-        reference_hash = get_file_hash(reference)
         np_image = converter.pil_image_to_numpy_array(pil_reference)
         np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
         reference_landmarks = predictor.get_landmarks(np_image)
-        assert len(reference_landmarks) == 1, 'inconclusive test'
+        assert len(reference_landmarks) == 1, "inconclusive test"
         max_pixel_distance = 10
 
-
         process_images()
-
 
         infos = db.get_all_infos()
         assert infos
