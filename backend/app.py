@@ -1,8 +1,8 @@
 import logging
-import sys
 
 from dotenv import load_dotenv
 
+from backend import processor
 from backend.container import Container
 from backend.processor import process_images
 from backend.utils import setup_global_logging
@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     container = Container()
     container.config.model_path.from_value(PREDICTOR_PATH_68)
-    container.wire(modules=[sys.modules[__name__]])
+    container.wire(modules=[processor])
     logger.debug("Container prepared")
 
     process_images()
