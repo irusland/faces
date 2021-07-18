@@ -2,7 +2,6 @@ import logging
 import os
 from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
-from functools import partial
 from typing import List, Tuple
 
 import numpy as np
@@ -56,11 +55,6 @@ def process_images(
 
     files = get_paths_to_process(settings.source_settings.path)
 
-    process_image_path = partial(
-        process_image,
-        anchor_landmarks=anchor_landmarks,
-        anchor_size=anchor_size,
-    )
     failed = []
     with ThreadPoolExecutor(max_workers=20) as executor:
         tasks = [
