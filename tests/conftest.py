@@ -1,4 +1,15 @@
+import logging
+
 from pytest_mock_resources import create_redis_fixture
+
+from backend.utils import addLoggingLevel
+
+
+def _setup_test_logging() -> None:
+    addLoggingLevel("TRACE", logging.DEBUG - 5)
+
+
+_setup_test_logging()
 
 
 def pytest_addoption(parser):
