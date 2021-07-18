@@ -61,10 +61,20 @@ class ExcludeDirFilter(logging.Filter):
         return self._exclude_dir not in log_record.pathname
 
 
+def _mkdir_by_path(path):
+    os.makedirs(path, exist_ok=True)
+
+
+class EnsureDirFileHandler(logging.FileHandler):
+    def __init__(self, filename, mode="a", encoding=None, delay=0):
+        _mkdir_by_path(os.path.dirname(filename))
+        super().__init__(filename, mode, encoding, delay)
+
+
 @lru_cache()
 def get_debug_file_handler(directory: str = LOGS_DIR) -> logging.FileHandler:
     log_path = get_log_path(directory, "debug")
-    handler = logging.FileHandler(log_path)
+    handler = EnsureDirFileHandler(log_path)
     formatter = logging.Formatter(FORMAT)
     handler.setFormatter(formatter)
     handler.addFilter(ExcludeDirFilter(".venv/"))
@@ -75,7 +85,7 @@ def get_debug_file_handler(directory: str = LOGS_DIR) -> logging.FileHandler:
 @lru_cache()
 def get_trace_file_handler(directory: str = LOGS_DIR) -> logging.FileHandler:
     log_path = get_log_path(directory, "trace")
-    handler = logging.FileHandler(log_path)
+    handler = EnsureDirFileHandler(log_path)
     formatter = logging.Formatter(FORMAT)
     handler.setFormatter(formatter)
     handler.addFilter(OnlyFilter(logging.TRACE))
@@ -86,7 +96,7 @@ def get_trace_file_handler(directory: str = LOGS_DIR) -> logging.FileHandler:
 @lru_cache()
 def get_info_file_handler(directory: str = LOGS_DIR) -> logging.FileHandler:
     log_path = get_log_path(directory, "info")
-    handler = logging.FileHandler(log_path)
+    handler = EnsureDirFileHandler(log_path)
     formatter = logging.Formatter(FORMAT)
     handler.setFormatter(formatter)
     handler.setLevel(logging.INFO)
