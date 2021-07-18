@@ -24,13 +24,12 @@ from backend.extractors.operator import (
     scale,
     warp_image,
 )
-from backend.extractors.painter import Painter
 from backend.file.utils import (
     get_datetime_original,
     get_file_hash,
     get_paths_to_process,
 )
-from backend.settings import ProcessorSettings
+from backend.settings import ProcessorSettings, ResultSettings
 from backend.utils import with_performance_profile
 
 logger = logging.getLogger(__file__)
@@ -40,51 +39,39 @@ logger = logging.getLogger(__file__)
 @with_performance_profile
 def process_images(
     settings: ProcessorSettings = Provide[Container.processor_settings],
-    file_manager: FileManager = Provide[Container.file_manager],
-    converter: Converter = Provide[Container.converter],
-    database: CacheDatabase = Provide[Container.database],
-    predictor: FacialPredictor = Provide[Container.predictor],
-    painter: Painter = Provide[Container.painter],
 ):
-    source_dir = settings.source_settings.path
-    result_dir = settings.result_settings.path
-    image_reference_path = settings.reference_settings.path
-    logger.info("IN\t%s", source_dir)
-    logger.info("OUT\t%s", result_dir)
-    logger.info("REF\t%s", image_reference_path)
+    logger.info("IN\t%s", settings.source_settings.path)
+    logger.info("OUT\t%s", settings.result_settings.path)
+    logger.info("REF\t%s", settings.reference_settings.path)
 
     anchor_landmarks = None
     anchor_size = None
     is_processed, anchor_landmarks, anchor_size, _ = process_image(
-        image_path=image_reference_path,
-        result_dir=result_dir,
-        file_manager=file_manager,
-        converter=converter,
-        database=database,
-        predictor=predictor,
-        painter=painter,
+        image_path=settings.reference_settings.path,
         anchor_landmarks=anchor_landmarks,
         anchor_size=anchor_size,
         override=True,
     )
     logger.debug("reference set")
 
-    files = get_paths_to_process(source_dir)
+    files = get_paths_to_process(settings.source_settings.path)
 
     process_image_path = partial(
         process_image,
-        result_dir=result_dir,
-        file_manager=file_manager,
-        converter=converter,
-        database=database,
-        predictor=predictor,
-        painter=painter,
         anchor_landmarks=anchor_landmarks,
         anchor_size=anchor_size,
     )
     failed = []
     with ThreadPoolExecutor(max_workers=20) as executor:
-        tasks = [executor.submit(process_image_path, file) for file in files]
+        tasks = [
+            executor.submit(
+                process_image,
+                image_path=file,
+                anchor_landmarks=anchor_landmarks,
+                anchor_size=anchor_size,
+            )
+            for file in files
+        ]
 
         for future in tqdm.tqdm(futures.as_completed(tasks), total=len(files)):
             is_processed, _, _, image_path = future.result()
@@ -93,23 +80,25 @@ def process_images(
 
     for path_ in failed:
         logger.info("%s was not processed", path_)
+        return False
+    return True
 
 
+@inject
 def process_image(
     image_path,
-    result_dir,
-    file_manager,
-    converter,
-    database,
-    predictor,
-    painter,
     anchor_landmarks,
     anchor_size,
     override: bool = False,
+    result: ResultSettings = Provide[Container.result_settings],
+    file_manager: FileManager = Provide[Container.file_manager],
+    converter: Converter = Provide[Container.converter],
+    database: CacheDatabase = Provide[Container.database],
+    predictor: FacialPredictor = Provide[Container.predictor],
 ):
     try:
         image_hash = get_file_hash(image_path)
-        processed_image_path = os.path.join(result_dir, f"{image_hash}.jpg")
+        processed_image_path = os.path.join(result.path, f"{image_hash}.jpg")
 
         logger.debug(
             "processing %s (%s) -> %s",

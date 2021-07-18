@@ -29,7 +29,9 @@ class TestProcessing:
     def test_processing(
         self, container: Container, prepare_dirs, test_redis, log
     ):
-        container.wire(modules=[sys.modules[__name__]])
+        from backend import processor
+
+        container.wire(modules=[processor])
         db = container.database()
         converter = container.converter()
         predictor = container.predictor()
@@ -42,7 +44,7 @@ class TestProcessing:
         assert len(reference_landmarks) == 1, "inconclusive test"
         max_pixel_distance = 10
 
-        process_images()
+        assert process_images()
 
         infos = db.get_all_infos()
         assert infos
