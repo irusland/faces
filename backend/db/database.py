@@ -63,3 +63,7 @@ class MetaDatabase(abc.ABC):
     @abc.abstractmethod
     def get_info(self, image_hash: str) -> Optional[MetaData]:
         ...
+
+
+class CacheDatabase(Database, MetaDatabase, abc.ABC):
+    ...

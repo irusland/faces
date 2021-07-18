@@ -2,6 +2,7 @@ import fnmatch
 import logging
 import os
 import re
+import sys
 from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
@@ -10,10 +11,11 @@ from typing import List, Tuple
 import numpy as np
 import tqdm
 from cv2 import cv2
+from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
 
-from backend.db.database import Database, FacialData, MetaData
-from backend.db.redis import RedisDB, RedisSettings
+from backend.container import Container
+from backend.db.database import CacheDatabase, Database, FacialData, MetaData
 from backend.extractors.converter import Converter
 from backend.extractors.filemanager import FileManager
 from backend.extractors.landmarker import (
@@ -29,20 +31,11 @@ from backend.extractors.operator import (
 from backend.extractors.painter import Painter
 from backend.file.utils import get_datetime_original, get_file_hash
 from backend.utils import setup_global_logging, with_performance_profile
-from definitions import (
-    DEV_ENV_PATH,
-    MODELS_DIR,
-    PHOTOS_RES_TEST_DIR,
-    PHOTOS_SRC_TEST_DIR,
-)
+from definitions import DEV_ENV_PATH, MODELS_DIR
 
 setup_global_logging()
 logger = logging.getLogger(__file__)
 DEBUG_DISPLAY = False
-
-
-def path(filename: str) -> str:
-    return os.path.join(PHOTOS_SRC_TEST_DIR, filename)
 
 
 def get_paths_to_process(source_dir: str):
@@ -60,35 +53,26 @@ def get_paths_to_process(source_dir: str):
     return files
 
 
+@inject
 @with_performance_profile
-def main():
-    converter = Converter()
-    file_manager = FileManager(converter)
-    model_path = os.path.join(
-        MODELS_DIR, "shape_predictor_68_face_landmarks.dat"
-    )
-    predictor = FacialPredictor(model_path)
-    painter = Painter()
-    db_settings = RedisSettings()
-    database = RedisDB(db_settings)
-    logger.debug("Operators prepared")
-
-    source_dir = PHOTOS_SRC_TEST_DIR
-    result_dir = PHOTOS_RES_TEST_DIR
-    source_dir = "/Users/irusland/LocalProjects/faces_data/iCloud_Photos_All"
-    result_dir = "/Users/irusland/LocalProjects/faces_data/iCloud_Results_All"
+def main(
+    source_dir: str = Provide[Container.config.source_dir],
+    result_dir: str = Provide[Container.config.result_dir],
+    image_reference_path: str = Provide[Container.config.image_reference_path],
+    file_manager: FileManager = Provide[Container.file_manager],
+    converter: Converter = Provide[Container.converter],
+    database: CacheDatabase = Provide[Container.database],
+    predictor: FacialPredictor = Provide[Container.predictor],
+    painter: Painter = Provide[Container.painter],
+):
     logger.info("IN\t%s", source_dir)
     logger.info("OUT\t%s", result_dir)
-
-    image_path_reference = (
-        "/Users/irusland/LocalProjects/faces/models/SAMPLE.jpg"
-    )
-    logger.debug("Reference image %s", image_path_reference)
+    logger.info("REF\t%s", image_reference_path)
 
     anchor_landmarks = None
     anchor_size = None
     is_processed, anchor_landmarks, anchor_size, _ = process_image(
-        image_path=image_path_reference,
+        image_path=image_reference_path,
         result_dir=result_dir,
         file_manager=file_manager,
         converter=converter,
@@ -156,16 +140,8 @@ def process_image(
         landmarks, was_created = _get_or_create_landmarks(
             image_hash, np_image, database, predictor
         )
-        datetime_original = get_datetime_original(image_path)
-        meta = MetaData(
-            image_hash=image_hash,
-            origin_path=image_path,
-            save_path=processed_image_path,
-            size=pil_image.size,
-            datetime_original=datetime_original,
-        )
-        database.save_info(meta)
-        if was_created or override:
+        exists = os.path.isfile(processed_image_path)
+        if was_created or override or not exists:
             middle_point = converter.pil_image_center(pil_image)
             main_landmarks = predictor.select_main_face(
                 landmarks, middle_point
@@ -180,6 +156,16 @@ def process_image(
             file_manager.save_np_array_image(np_warped, processed_image_path)
             if DEBUG_DISPLAY:
                 painter.draw_points(pil_image, main_landmarks)
+
+            datetime_original = get_datetime_original(image_path)
+            meta = MetaData(
+                image_hash=image_hash,
+                origin_path=image_path,
+                save_path=processed_image_path,
+                size=pil_image.size,
+                datetime_original=datetime_original,
+            )
+            database.save_info(meta)
 
             logger.debug("Processed %s", image_path)
             return True, main_landmarks, pil_image.size, image_path
@@ -242,4 +228,15 @@ def _scale_adjust(
 
 if __name__ == "__main__":
     load_dotenv(DEV_ENV_PATH)
+
+    container = Container()
+    container.config.model_path.from_value(
+        os.path.join(MODELS_DIR, "shape_predictor_68_face_landmarks.dat")
+    )
+    container.config.source_dir.from_env("PHOTOS_SOURCE_DIR")
+    container.config.result_dir.from_env("PHOTOS_RESULT_DIR")
+    container.config.image_reference_path.from_env("IMAGE_REFERENCE")
+    container.wire(modules=[sys.modules[__name__]])
+    logger.debug("Container prepared")
+
     main()
