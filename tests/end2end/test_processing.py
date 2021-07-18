@@ -20,8 +20,15 @@ def log(caplog):
     return caplog
 
 
+@pytest.fixture()
+def prepare_dirs(container: Container):
+    os.makedirs(container.result_dir, exist_ok=True)
+
+
 class TestProcessing:
-    def test_processing(self, container: Container, test_redis, log):
+    def test_processing(
+        self, container: Container, prepare_dirs, test_redis, log
+    ):
         container.wire(modules=[sys.modules[__name__]])
         db = container.database()
         converter = container.converter()
